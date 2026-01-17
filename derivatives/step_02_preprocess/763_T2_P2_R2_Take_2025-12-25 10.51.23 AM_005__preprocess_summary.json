@@ -1,0 +1,10 @@
+{
+    "run_id": "763_T2_P2_R2_Take_2025-12-25 10.51.23 AM_005",
+    "raw_missing_percent": 0.0,
+    "post_missing_percent": 0.0,
+    "max_interpolation_gap": 10,
+    "bone_qc_mean_cv": 0.376,
+    "bone_qc_alerts": 0,
+    "worst_bone": "Hips->Spine",
+    "interpolation_method": "linear"
+}
