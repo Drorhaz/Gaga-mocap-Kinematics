@@ -9,6 +9,10 @@
         "arm_segments": ["L_Arm", "LeftArm", "L_UpArm", "R_Arm", "RightArm", "R_UpArm"],
         "femur_segments": ["UpLeg", "Thigh", "Femur"]
     },
+    "gap_filling": {
+        "mad_multiplier": 6.0,
+        "max_gap_s": 0.1
+    },
     "metadata": {
         "reference_author": "Rácz et al. (2025)",
         "standard": "ISB / CAST Technique"

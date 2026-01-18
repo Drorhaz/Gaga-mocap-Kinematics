@@ -3,39 +3,45 @@
         "offsets": {
             "Left": {
                 "bone_detected": "LeftArm",
-                "measured_angle_deg": 9.62,
-                "correction_value_deg": -9.62,
+                "measured_angle_deg": 10.13,
+                "correction_value_deg": -10.13,
                 "is_significant": true
             },
             "Right": {
                 "bone_detected": "RightArm",
-                "measured_angle_deg": 10.56,
-                "correction_value_deg": -10.56,
+                "measured_angle_deg": 11.34,
+                "correction_value_deg": -11.34,
                 "is_significant": true
             }
         },
         "scaling": 1.0,
         "bone_m": {
-            "Spine": 81.9069,
-            "Spine1": 214.1175,
-            "Neck": 222.0898,
-            "Head": 139.3066,
-            "LeftUpLeg": 91.0489,
-            "LeftLeg": 422.3376,
-            "LeftFoot": 389.9341,
-            "LeftToeBase": 148.8575,
-            "RightUpLeg": 91.0489,
-            "RightLeg": 422.34,
+            "Spine": 82.0956,
+            "Spine1": 214.3101,
+            "Neck": 221.9084,
+            "Head": 139.151,
+            "LeftUpLeg": 91.0568,
+            "LeftLeg": 422.3404,
+            "LeftFoot": 389.9346,
+            "LeftToeBase": 148.8577,
+            "RightUpLeg": 91.0568,
+            "RightLeg": 422.3404,
             "RightFoot": 389.9345,
-            "RightToeBase": 148.8573,
-            "LeftShoulder": 174.6453,
-            "LeftArm": 160.3002,
-            "LeftForeArm": 247.4334,
-            "LeftHand": 208.4208,
-            "RightShoulder": 174.6422,
-            "RightArm": 160.4573,
-            "RightForeArm": 249.9947,
-            "RightHand": 231.8601
+            "RightToeBase": 148.8577,
+            "LeftShoulder": 174.6614,
+            "LeftArm": 160.4754,
+            "LeftForeArm": 251.3129,
+            "LeftHand": 233.1571,
+            "RightShoulder": 174.6614,
+            "RightArm": 160.4755,
+            "RightForeArm": 251.3125,
+            "RightHand": 233.1578,
+            "LeftHandThumb1": 52.3558,
+            "LeftHandThumb2": 28.7428,
+            "LeftHandThumb3": 24.5667,
+            "LeftHandIndex1": 104.649,
+            "LeftHandIndex2": 43.2514,
+            "LeftHandIndex3": 21.6257
         }
     },
     "config_params": {
@@ -59,6 +65,10 @@
                 "Thigh",
                 "Femur"
             ]
+        },
+        "gap_filling": {
+            "mad_multiplier": 6.0,
+            "max_gap_s": 0.1
         },
         "metadata": {
             "reference_author": "R\u00e1cz et al. (2025)",
