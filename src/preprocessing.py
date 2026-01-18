@@ -4,6 +4,9 @@ import csv
 import re
 from pathlib import Path
 from utils import normalize_joint_name
+from scipy.spatial.transform import Rotation as R
+from scipy.interpolate import CubicSpline
+from scipy.stats import median_abs_deviation
 
 def correct_motive_name(raw_name):
     """
@@ -181,7 +184,29 @@ def parse_optitrack_csv(csv_path, schema):
 
 # ... inside parse_optitrack_csv, after the loop ...
 
-    # --- 6. Report ---
+    # --- 6. Schema & Time Validation ---
+    validate_time_vector(time_s)
+    
+    # Validate quaternion completeness only for joints that were actually found
+    for joint_name in found_cols.keys():
+        # Check if this joint has quaternion data in the parsed arrays
+        joint_idx = None
+        for i, target in enumerate(target_joints):
+            if normalize_joint_name(target) == joint_name:
+                joint_idx = i
+                break
+        
+        if joint_idx is not None:
+            # Check if we actually have quaternion data for this joint
+            if not np.all(np.isnan(q_global[:, joint_idx])):
+                # We have data, validate completeness
+                validate_quaternion_completeness(
+                    [f"{joint_name}__qx", f"{joint_name}__qy", 
+                     f"{joint_name}__qz", f"{joint_name}__qw"],
+                    joint_name
+                )
+
+    # --- 7. Report ---
     # MISSING LINES ADDED HERE:
     nan_pos_pct = np.mean(np.isnan(pos_mm)) * 100
     nan_rot_pct = np.mean(np.isnan(q_global)) * 100
@@ -208,3 +233,265 @@ def parse_optitrack_csv(csv_path, schema):
     }
 
     return frame_idx, time_s, pos_mm, q_global, loader_report
+
+
+def detect_and_mask_artifacts(time_s, data, mad_multiplier=3.0, expand_frames=1):
+    """
+    Detect and mask non-physiological spikes using velocity-based MAD thresholding.
+    
+    Parameters:
+    -----------
+    time_s : np.ndarray
+        Time vector in seconds
+    data : np.ndarray
+        1D position data
+    mad_multiplier : float
+        Multiplier for MAD threshold (default: 3.0)
+    expand_frames : int
+        Number of adjacent frames to mask around detected artifacts
+        
+    Returns:
+    --------
+    masked_data : np.ndarray
+        Data with spikes replaced by NaN
+    """
+    if len(data) < 3 or len(time_s) != len(data):
+        return data.copy()
+    
+    # Compute velocity on potentially irregular time grid
+    dt = np.diff(time_s)
+    # Avoid division by zero
+    dt[dt <= 0] = np.median(dt[dt > 0]) if np.any(dt > 0) else 1.0/120.0
+    
+    # Velocity computation (m/s if data is in meters) - handle NaNs properly
+    vel = np.diff(data) / dt
+    abs_vel = np.abs(vel)
+    
+    # Remove NaNs from velocity before MAD computation
+    valid_vel_mask = ~np.isnan(abs_vel)
+    if not np.any(valid_vel_mask):
+        return data.copy()  # All NaNs, nothing to process
+    
+    abs_vel_valid = abs_vel[valid_vel_mask]
+    
+    # Calculate MAD of absolute velocities (using only valid velocities)
+    sigma = max(median_abs_deviation(abs_vel_valid, scale='normal'), 1e-6)
+    threshold = mad_multiplier * sigma
+    
+    # Find velocity spikes (using original abs_vel to maintain length)
+    spike_mask = abs_vel > threshold
+    
+    # Create masked copy
+    masked_data = data.copy()
+    
+    # Mark spike points and their neighbors
+    spike_indices = np.where(spike_mask)[0]
+    for idx in spike_indices:
+        # Mask the spike point and adjacent frames
+        start_idx = max(0, idx - expand_frames)
+        end_idx = min(len(masked_data), idx + expand_frames + 1)
+        masked_data[start_idx:end_idx] = np.nan
+    
+    return masked_data
+
+
+def ensure_hemispheric_continuity(q_prev, q_current):
+    """
+    Ensure quaternion continuity by checking hemisphere alignment.
+    
+    If dot(q_prev, q_current) < 0, flip q_current to same hemisphere.
+    This prevents SLERP from taking the long arc (>180°).
+    
+    Parameters:
+    -----------
+    q_prev, q_current : np.ndarray
+        Quaternions to check
+        
+    Returns:
+    --------
+    q_aligned : np.ndarray
+        q_current aligned to same hemisphere as q_prev
+    """
+    if np.dot(q_prev, q_current) < 0:
+        return -q_current
+    return q_current
+
+
+def quaternion_slerp_interpolation(time_points, quaternions, query_times):
+    """
+    Interpolate quaternions using SLERP with hemispheric continuity.
+    
+    Parameters:
+    -----------
+    time_points : np.ndarray
+        Original time points
+    quaternions : np.ndarray
+        Quaternion data (N, 4)
+    query_times : np.ndarray
+        Times to interpolate at
+        
+    Returns:
+    --------
+    q_interp : np.ndarray
+        Interpolated quaternions (M, 4)
+    """
+    if len(time_points) < 2:
+        return quaternions.copy()
+    
+    # Ensure hemispheric continuity - make explicit copy
+    q_continuous = quaternions.copy()
+    for i in range(1, len(q_continuous)):
+        if np.dot(q_continuous[i], q_continuous[i-1]) < 0:
+            q_continuous[i] *= -1
+    
+    # Create rotation object
+    rotations = R.from_quat(q_continuous)
+    
+    # Interpolate using scipy's built-in method
+    from scipy.interpolate import interp1d
+    # Create interpolator for each quaternion component
+    q_interp = np.zeros((len(query_times), 4))
+    for i in range(4):
+        interp = interp1d(time_points, q_continuous[:, i], kind='linear')
+        q_interp[:, i] = interp(query_times)
+    
+    # Re-normalize to unit quaternions
+    norms = np.linalg.norm(q_interp, axis=1)
+    norms[norms == 0] = 1.0
+    q_interp = q_interp / norms[:, np.newaxis]
+    
+    return q_interp
+
+
+def bounded_spline_interpolation(time_points, data, max_gap_s=0.1):
+    """
+    Fill gaps using bounded cubic spline interpolation.
+    
+    Only fills gaps <= max_gap_s. Gaps at boundaries remain NaN.
+    
+    Parameters:
+    -----------
+    time_points : np.ndarray
+        Time vector
+    data : np.ndarray
+        Data with NaN gaps
+    max_gap_s : float
+        Maximum gap duration to fill (seconds)
+        
+    Returns:
+    --------
+    filled_data : np.ndarray
+        Data with filled gaps
+    """
+    filled_data = data.copy()
+    
+    # Find NaN gaps
+    nan_mask = np.isnan(data)
+    
+    # No gaps to fill
+    if not np.any(nan_mask):
+        return filled_data
+    
+    # Find gap start and end indices
+    gap_starts = np.where(~nan_mask[:-1] & nan_mask[1:])[0] + 1
+    gap_ends = np.where(nan_mask[:-1] & ~nan_mask[1:])[0] + 1
+    
+    # Handle case where gap starts at beginning or ends at end
+    if nan_mask[0]:
+        gap_starts = np.concatenate([[0], gap_starts])
+    if nan_mask[-1]:
+        gap_ends = np.concatenate([gap_ends, [len(data)]])
+    
+    # Ensure we have matching starts and ends
+    if len(gap_starts) != len(gap_ends):
+        # This shouldn't happen with proper gap detection
+        return filled_data
+    
+    # Fill each gap
+    for start, end in zip(gap_starts, gap_ends):
+        gap_duration = time_points[end-1] - time_points[start] if end > start else 0
+        
+        # Skip if gap too large or at boundary
+        if gap_duration > max_gap_s or start == 0 or end == len(data):
+            continue
+        
+        # Get valid points for interpolation
+        valid_mask = ~nan_mask
+        valid_times = time_points[valid_mask]
+        valid_data = data[valid_mask]
+        
+        # Need at least 4 points for cubic spline
+        if len(valid_times) < 4:
+            continue
+        
+        try:
+            # Cubic spline interpolation
+            spline = CubicSpline(valid_times, valid_data)
+            gap_times = time_points[start:end]
+            filled_data[start:end] = spline(gap_times)
+        except:
+            # Fallback to linear interpolation if spline fails
+            filled_data[start:end] = np.interp(gap_times, valid_times, valid_data)
+    
+    return filled_data
+
+
+def validate_time_vector(time_s):
+    """
+    Validate time vector monotonicity.
+    
+    Parameters:
+    -----------
+    time_s : np.ndarray
+        Time vector in seconds
+        
+    Raises:
+    -------
+    ValueError
+        If time is not strictly increasing
+    """
+    if len(time_s) < 2:
+        return
+    
+    time_diffs = np.diff(time_s)
+    
+    # Check for non-positive time steps
+    if np.any(time_diffs <= 0):
+        # Find first violation
+        violation_idx = np.where(time_diffs <= 0)[0][0]
+        raise ValueError(
+            f"Time vector is not monotonic at index {violation_idx}. "
+            f"time[{violation_idx}] = {time_s[violation_idx]:.6f}, "
+            f"time[{violation_idx+1}] = {time_s[violation_idx+1]:.6f}"
+        )
+
+
+def validate_quaternion_completeness(columns, joint_name):
+    """
+    Validate that all 4 quaternion components exist for a joint.
+    
+    Parameters:
+    -----------
+    columns : list
+        Available column names
+    joint_name : str
+        Joint name to validate
+        
+    Raises:
+    -------
+    ValueError
+        If quaternion components are incomplete
+    """
+    required_components = ['qx', 'qy', 'qz', 'qw']
+    missing_components = []
+    
+    for comp in required_components:
+        col_name = f"{joint_name}__{comp}"
+        if col_name not in columns:
+            missing_components.append(comp)
+    
+    if missing_components:
+        raise ValueError(
+            f"Incomplete quaternion data for joint '{joint_name}'. "
+            f"Missing components: {missing_components}"
+        )

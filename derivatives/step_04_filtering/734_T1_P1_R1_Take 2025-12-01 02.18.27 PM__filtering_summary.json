@@ -1,8 +1,8 @@
 {
     "run_id": "734_T1_P1_R1_Take 2025-12-01 02.18.27 PM",
     "identity": {
-        "timestamp": "2026-01-18 00:31",
-        "pipeline_version": "v2.5_robust_gaga"
+        "timestamp": "2026-01-18 17:05",
+        "pipeline_version": "v2.6_biomechanical_guardrails"
     },
     "subject_metadata": {
         "mass_kg": null,
@@ -15,9 +15,24 @@
         "sampling_rate_actual": 120.0
     },
     "filter_params": {
-        "filter_type": "Butterworth Low-pass (Zero-phase)",
-        "filter_cutoff_hz": 10.0,
-        "filter_order": 4,
-        "normalization_applied": true
+        "filter_type": "Winter Residual Analysis + Butterworth Low-pass (Zero-phase)",
+        "filter_method": "Winter Dynamic Cutoff Selection",
+        "filter_cutoff_hz": 8.0,
+        "filter_range_hz": [
+            1,
+            12
+        ],
+        "filter_order": 2,
+        "representative_column": "multi_signal_median(5_cols)",
+        "quaternion_filtering": false,
+        "winter_analysis_failed": false,
+        "expected_dance_range": "4-10 Hz",
+        "biomechanical_guardrails": {
+            "enabled": true,
+            "strategy": "multi_signal_with_guardrails",
+            "min_cutoff_trunk_hz": 6.0,
+            "min_cutoff_distal_hz": 8.0,
+            "use_trunk_global": false
+        }
     }
 }
