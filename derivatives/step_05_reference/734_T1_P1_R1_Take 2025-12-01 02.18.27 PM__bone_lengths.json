@@ -1,0 +1,41 @@
+{
+    "subject": {
+        "height_cm": null,
+        "mass_kg": null
+    },
+    "scaling": {
+        "factor": 1.0,
+        "units": "meters"
+    },
+    "bone_lengths": {
+        "Spine": 81.90685241634169,
+        "Spine1": 214.11747345700576,
+        "Neck": 222.0898172421755,
+        "Head": 139.30657284779966,
+        "LeftUpLeg": 91.04888722667268,
+        "LeftLeg": 422.33760577443775,
+        "LeftFoot": 389.9340972396412,
+        "LeftToeBase": 148.8574590013183,
+        "RightUpLeg": 91.04888845146512,
+        "RightLeg": 422.33995937512856,
+        "RightFoot": 389.9345375324673,
+        "RightToeBase": 148.8573149306275,
+        "LeftShoulder": 174.64525911739395,
+        "LeftArm": 160.30022980098698,
+        "LeftForeArm": 247.4334347885382,
+        "LeftHand": 208.42083204362672,
+        "RightShoulder": 174.6421870614135,
+        "RightArm": 160.4572859673833,
+        "RightForeArm": 249.99468224505785,
+        "RightHand": 231.86007973728337
+    },
+    "anatomical_offsets": {
+        "Left_elevation_offset": 9.62,
+        "Right_elevation_offset": 10.56
+    },
+    "correction_applied": false,
+    "audit": {
+        "femur_error_pct": 0.0,
+        "status": "N/A"
+    }
+}

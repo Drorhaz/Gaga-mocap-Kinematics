@@ -4,7 +4,7 @@ qc_dir: "qc"
 data_dir: "data"
 
 # Current CSV file to process (relative to data_dir)
-current_csv: "763/T2/763_T2_P2_R2_Take_2025-12-25 10.51.23 AM_005.csv"
+current_csv: "734/T1/734_T1_P1_R1_Take 2025-12-01 02.18.27 PM.csv"
 
 # Processing parameters
 fs_target: 120.0

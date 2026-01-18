@@ -1,0 +1,14 @@
+{
+    "run_id": "734_T1_P1_R1_Take 2025-12-01 02.18.27 PM",
+    "raw_missing_percent": 0.0,
+    "post_missing_percent": 0.0,
+    "max_interpolation_gap": 10,
+    "bone_qc_mean_cv": 0.53,
+    "bone_qc_status": "GOLD",
+    "bone_qc_alerts": [
+        "Hips->Spine",
+        "Neck->Head"
+    ],
+    "worst_bone": "Hips->Spine",
+    "interpolation_method": "linear_quaternion_normalized"
+}
