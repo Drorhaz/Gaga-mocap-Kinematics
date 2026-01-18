@@ -1,0 +1,11 @@
+{
+    "subject_info": {
+        "weight_kg": null, 
+        "height_cm": null,
+        "body_type": "average"
+    },
+    "pipeline_switches": {
+        "force_unit_normalization": false,
+        "isb_alignment": true
+    }
+}
