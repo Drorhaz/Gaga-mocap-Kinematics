@@ -5,6 +5,10 @@ This module implements objective low-pass cutoff selection using Winter residual
 and zero-lag Butterworth filtering for position data only.
 
 Pipeline placement: After resampling to perfect grid, before derivative computation.
+
+References:
+    Winter, D. A. (2009). Biomechanics and motor control of human movement. 4th ed.
+    Wren et al. (2006). Efficacy of clinical gait analysis. Gait & Posture, 22(4), 295-305.
 """
 
 import numpy as np
@@ -14,6 +18,17 @@ from typing import Tuple, List, Dict, Optional, Union
 from scipy.signal import butter, filtfilt
 
 logger = logging.getLogger(__name__)
+
+# Import PSD validation (optional - only if module exists)
+try:
+    from .filter_validation import (
+        validate_winter_filter_multi_signal,
+        check_filter_cutoff_validity
+    )
+    PSD_VALIDATION_AVAILABLE = True
+except ImportError:
+    PSD_VALIDATION_AVAILABLE = False
+    logger.warning("PSD validation module not available - validation metrics will be skipped")
 
 
 def winter_residual_analysis(signal: np.ndarray, 
@@ -327,6 +342,31 @@ def apply_winter_filter(df: pd.DataFrame,
             "strategy": "trunk_global" if use_trunk_global else "multi_signal_with_guardrails"
         }
     }
+    
+    # PSD Validation (Research Validation Phase 1 - Item 1)
+    if PSD_VALIDATION_AVAILABLE:
+        try:
+            logger.info("Running PSD validation to verify filter quality...")
+            
+            # Check cutoff validity
+            cutoff_validity = check_filter_cutoff_validity(fc, fs, fmax)
+            metadata['cutoff_validity'] = cutoff_validity
+            
+            # Validate filter performance on sample of signals
+            psd_validation = validate_winter_filter_multi_signal(
+                df, df_out, pos_cols_valid, fs, fc, n_samples=5
+            )
+            metadata['psd_validation'] = psd_validation
+            
+            logger.info(f"PSD Validation Complete: Dance preservation={psd_validation.get('dance_preservation_mean', 0):.1f}%, "
+                       f"Filter quality={psd_validation.get('overall_filter_quality', 'UNKNOWN')}")
+            
+        except Exception as e:
+            logger.warning(f"PSD validation failed: {e}")
+            metadata['psd_validation'] = {'status': 'ERROR', 'error': str(e)}
+    else:
+        logger.info("PSD validation skipped (module not available)")
+        metadata['psd_validation'] = {'status': 'SKIPPED', 'reason': 'module_not_available'}
     
     logger.info(f"Winter filtering applied: cutoff={fc} Hz, {len(pos_cols_valid)}/{len(pos_cols)} position columns filtered")
     
