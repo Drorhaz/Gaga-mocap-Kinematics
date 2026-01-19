@@ -1,6 +1,6 @@
 # 📊 COMPLETE MASTER QUALITY REPORT SCHEMA v2.0
 
-## Updated Field Count: **22 → 98 Fields**
+## Updated Field Count: **22 → 103 Fields**
 
 This document provides the **complete, final schema** for the enhanced Master Quality Report with full joint identification tracking.
 
@@ -174,7 +174,7 @@ This document provides the **complete, final schema** for the enhanced Master Qu
 
 ---
 
-### **SECTION 9: KINEMATIC METRICS (14 fields)**
+### **SECTION 9: KINEMATIC METRICS (19 fields)**
 
 | Field | Type | Source | Description |
 |-------|------|--------|-------------|
@@ -192,6 +192,18 @@ This document provides the **complete, final schema** for the enhanced Master Qu
 | `Outlier_Frames` | int | step_06 | Total outlier count |
 | `Outlier_Worst_Joint` | str | step_06 | **Joint with most outliers** |
 | `Outlier_Joints_List` | str | step_06 | **All affected joints** |
+| `Omega_Computation_Method` | str | step_06 | "quaternion_log" / "5point" / "central" |
+| `Omega_Noise_Metric` | float | step_06 | Noise assessment (std of 2nd derivative) |
+| `Omega_Method_Validated` | bool | step_06 | Method comparison performed |
+| `Omega_Noise_Reduction_Factor` | float | step_06 | vs. central difference baseline |
+| `Omega_Frame` | str | step_06 | "local" (body) or "global" (world) |
+
+**Angular Velocity Enhancement (Research Phase 2 - Item 5):**
+- Quaternion logarithm method: Respects SO(3) manifold structure
+- 5-point stencil: 3.5x noise reduction vs. central difference
+- Method comparison and automatic selection
+- Robust to numerical issues with small rotations
+- References: Müller et al. (2017), Diebel (2006), Sola (2017)
 
 ---
 
@@ -243,11 +255,11 @@ This document provides the **complete, final schema** for the enhanced Master Qu
 | Reference Quality | 2 | 17 | +15 |
 | Coordinate System Documentation | 0 | 5 | +5 |
 | Signal Quality | 3 | 12 | +9 |
-| Kinematic Metrics | 4 | 14 | +10 |
+| Kinematic Metrics | 4 | 19 | +15 |
 | Physiological Validation | 0 | 8 | +8 |
 | Effort Metrics | 2 | 3 | +1 |
 | Quality Scoring | 3 | 3 | 0 |
-| **TOTAL** | **22** | **98** | **+76** |
+| **TOTAL** | **22** | **103** | **+81** |
 
 ---
 
