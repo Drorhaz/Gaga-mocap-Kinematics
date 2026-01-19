@@ -1,6 +1,6 @@
 # 📊 COMPLETE MASTER QUALITY REPORT SCHEMA v2.0
 
-## Updated Field Count: **22 → 108 Fields**
+## Updated Field Count: **22 → 113 Fields**
 
 This document provides the **complete, final schema** for the enhanced Master Quality Report with full joint identification tracking.
 
@@ -187,7 +187,7 @@ This document provides the **complete, final schema** for the enhanced Master Qu
 
 ---
 
-### **SECTION 9: KINEMATIC METRICS (19 fields)**
+### **SECTION 9: KINEMATIC METRICS (24 fields)**
 
 | Field | Type | Source | Description |
 |-------|------|--------|-------------|
@@ -210,13 +210,24 @@ This document provides the **complete, final schema** for the enhanced Master Qu
 | `Omega_Method_Validated` | bool | step_06 | Method comparison performed |
 | `Omega_Noise_Reduction_Factor` | float | step_06 | vs. central difference baseline |
 | `Omega_Frame` | str | step_06 | "local" (body) or "global" (world) |
+| `Velocity_SG_Window_Sec` | float | step_06 | SG filter window size |
+| `Velocity_SG_Polyorder` | int | step_06 | SG polynomial order |
+| `Velocity_SG_Effective_Cutoff_Hz` | float | step_06 | Estimated cutoff frequency |
+| `Velocity_SG_Validated` | bool | step_06 | Parameters validated |
+| `Velocity_SG_Noise_Reduction_Factor` | float | step_06 | vs. simple difference |
 
 **Angular Velocity Enhancement (Research Phase 2 - Item 5):**
 - Quaternion logarithm method: Respects SO(3) manifold structure
 - 5-point stencil: 3.5x noise reduction vs. central difference
 - Method comparison and automatic selection
-- Robust to numerical issues with small rotations
 - References: Müller et al. (2017), Diebel (2006), Sola (2017)
+
+**SG Filter Validation (Research Phase 2 - Item 7):**
+- Validates window (0.175s) and polyorder (3) for dance
+- 54x noise reduction vs. simple finite difference
+- Effective cutoff ~2.3 Hz (appropriate for smoothing while preserving dynamics)
+- Biomechanical validation for movement type
+- References: Savitzky & Golay (1964), Woltring (1985), Winter (2009)
 
 ---
 
@@ -268,11 +279,11 @@ This document provides the **complete, final schema** for the enhanced Master Qu
 | Reference Quality | 2 | 17 | +15 |
 | Coordinate System Documentation | 0 | 5 | +5 |
 | Signal Quality | 3 | 12 | +9 |
-| Kinematic Metrics | 4 | 19 | +15 |
+| Kinematic Metrics | 4 | 24 | +20 |
 | Physiological Validation | 0 | 8 | +8 |
 | Effort Metrics | 2 | 3 | +1 |
 | Quality Scoring | 3 | 3 | 0 |
-| **TOTAL** | **22** | **108** | **+86** |
+| **TOTAL** | **22** | **113** | **+91** |
 
 ---
 
