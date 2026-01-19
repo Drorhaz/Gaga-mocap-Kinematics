@@ -1,6 +1,6 @@
 # 📊 COMPLETE MASTER QUALITY REPORT SCHEMA v2.0
 
-## Updated Field Count: **22 → 86 Fields**
+## Updated Field Count: **22 → 91 Fields**
 
 This document provides the **complete, final schema** for the enhanced Master Quality Report with full joint identification tracking.
 
@@ -127,7 +127,27 @@ This document provides the **complete, final schema** for the enhanced Master Qu
 
 ---
 
-### **SECTION 7: SIGNAL QUALITY (5 fields)**
+### **SECTION 7: COORDINATE SYSTEM DOCUMENTATION (5 fields)**
+
+| Field | Type | Source | Description |
+|-------|------|--------|-------------|
+| `Coordinate_System_Documented` | bool | metadata | Always True for validated pipelines |
+| `Input_Frame` | str | metadata | "OptiTrack World (X=Right, Y=Up, Z=Forward)" |
+| `Processing_Frame` | str | metadata | Frame used during processing |
+| `Angle_Frame` | str | metadata | "ISB Anatomical" for Euler angles |
+| `Frame_Transformation_Explicit` | bool | metadata | Transformations explicitly documented |
+
+**Coordinate System Documentation (Research Phase 1 - Item 3):**
+- Explicit documentation of all coordinate frames used
+- OptiTrack: X=Right, Y=Up, Z=Forward (right-handed, mm)
+- ISB: X=Anterior, Y=Superior, Z=Right (right-handed, m)
+- Euler sequences follow Wu et al. (2005) ISB recommendations
+- All transformations explicitly defined and validated
+- References: Wu et al. (2005), OptiTrack Documentation (2020)
+
+---
+
+### **SECTION 8: SIGNAL QUALITY (5 fields)**
 
 | Field | Type | Source | Description |
 |-------|------|--------|-------------|
@@ -139,7 +159,7 @@ This document provides the **complete, final schema** for the enhanced Master Qu
 
 ---
 
-### **SECTION 8: KINEMATIC METRICS (14 fields)**
+### **SECTION 9: KINEMATIC METRICS (14 fields)**
 
 | Field | Type | Source | Description |
 |-------|------|--------|-------------|
@@ -160,7 +180,7 @@ This document provides the **complete, final schema** for the enhanced Master Qu
 
 ---
 
-### **SECTION 9: PHYSIOLOGICAL VALIDATION (8 fields)**
+### **SECTION 10: PHYSIOLOGICAL VALIDATION (8 fields)**
 
 | Field | Type | Source | Description |
 |-------|------|--------|-------------|
@@ -175,7 +195,7 @@ This document provides the **complete, final schema** for the enhanced Master Qu
 
 ---
 
-### **SECTION 10: EFFORT METRICS (3 fields)**
+### **SECTION 11: EFFORT METRICS (3 fields)**
 
 | Field | Type | Source | Description |
 |-------|------|--------|-------------|
@@ -185,7 +205,7 @@ This document provides the **complete, final schema** for the enhanced Master Qu
 
 ---
 
-### **SECTION 11: QUALITY SCORING (3 fields)**
+### **SECTION 12: QUALITY SCORING (3 fields)**
 
 | Field | Type | Source | Description |
 |-------|------|--------|-------------|
@@ -206,12 +226,13 @@ This document provides the **complete, final schema** for the enhanced Master Qu
 | Temporal Validation | 0 | 3 | +3 |
 | Filtering Validation | 0 | 13 | +13 |
 | Reference Quality | 2 | 17 | +15 |
+| Coordinate System Documentation | 0 | 5 | +5 |
 | Signal Quality | 3 | 5 | +2 |
 | Kinematic Metrics | 4 | 14 | +10 |
 | Physiological Validation | 0 | 8 | +8 |
 | Effort Metrics | 2 | 3 | +1 |
 | Quality Scoring | 3 | 3 | 0 |
-| **TOTAL** | **22** | **86** | **+64** |
+| **TOTAL** | **22** | **91** | **+69** |
 
 ---
 
