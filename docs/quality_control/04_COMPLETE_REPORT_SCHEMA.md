@@ -1,6 +1,6 @@
 # 📊 COMPLETE MASTER QUALITY REPORT SCHEMA v2.0
 
-## Updated Field Count: **22 → 103 Fields**
+## Updated Field Count: **22 → 108 Fields**
 
 This document provides the **complete, final schema** for the enhanced Master Quality Report with full joint identification tracking.
 
@@ -39,7 +39,7 @@ This document provides the **complete, final schema** for the enhanced Master Qu
 
 ---
 
-### **SECTION 3: PREPROCESSING METRICS (13 fields)**
+### **SECTION 3: PREPROCESSING METRICS (18 fields)**
 
 | Field | Type | Source | Description |
 |-------|------|--------|-------------|
@@ -56,6 +56,19 @@ This document provides the **complete, final schema** for the enhanced Master Qu
 | `Worst_Bone` | str | step_02 | Bone with highest CV |
 | `Worst_Bone_CV` | float | step_02 | CV value of worst bone |
 | `Bone_QC_Grade` | str | step_02 | GOLD/SILVER/BRONZE/FAIL |
+| `Artifact_MAD_Multiplier` | float | step_02 | MAD threshold used (default: 6.0) |
+| `Artifact_MAD_Validated` | bool | step_02 | Threshold empirically validated |
+| `Artifact_Detection_F1_Score` | float | step_02 | Validation F1 score |
+| `Artifact_False_Positive_Rate` | float | step_02 | FPR from noise robustness |
+| `Artifact_Optimal_Multiplier` | float | step_02 | Recommended multiplier from validation |
+
+**Artifact Detection Validation (Research Phase 2 - Item 6):**
+- Empirical validation of MAD multiplier (typically 3-8x)
+- ROC analysis with synthetic artifacts
+- Noise robustness testing (false positive rates)
+- Method comparison (MAD vs. Z-score vs. fixed threshold)
+- Current 6x multiplier validated as balanced choice
+- References: Skurowski et al. (2015), Leys et al. (2013), Feng et al. (2019)
 
 ---
 
@@ -249,7 +262,7 @@ This document provides the **complete, final schema** for the enhanced Master Qu
 |---------|---------|----------|-------|
 | Identity & Provenance | 2 | 8 | +6 |
 | Raw Data Quality | 3 | 9 | +6 |
-| Preprocessing | 5 | 13 | +8 |
+| Preprocessing | 5 | 18 | +13 |
 | Temporal Validation | 0 | 3 | +3 |
 | Filtering Validation | 0 | 13 | +13 |
 | Reference Quality | 2 | 17 | +15 |
@@ -259,7 +272,7 @@ This document provides the **complete, final schema** for the enhanced Master Qu
 | Physiological Validation | 0 | 8 | +8 |
 | Effort Metrics | 2 | 3 | +1 |
 | Quality Scoring | 3 | 3 | 0 |
-| **TOTAL** | **22** | **103** | **+81** |
+| **TOTAL** | **22** | **108** | **+86** |
 
 ---
 
