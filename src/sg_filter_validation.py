@@ -165,7 +165,7 @@ def validate_sg_biomechanical(position: np.ndarray,
     if movement_type == 'dance':
         window_range = (0.08, 0.3)  # 0.08-0.3s for dynamic movements
         poly_range = (2, 4)
-        expected_bandwidth_hz = (1, 15)  # Dance typically 1-15 Hz
+        expected_bandwidth_hz = (1, 15)  # Dance: 1-15 Hz (rapid gestures to 15 Hz)
     elif movement_type == 'gait':
         window_range = (0.1, 0.5)
         poly_range = (2, 3)

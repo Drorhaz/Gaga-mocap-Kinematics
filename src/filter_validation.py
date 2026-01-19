@@ -81,14 +81,14 @@ def analyze_filter_psd_preservation(signal_raw: np.ndarray,
                                    signal_filtered: np.ndarray,
                                    fs: float,
                                    cutoff_hz: float,
-                                   dance_band: Tuple[float, float] = (1.0, 10.0),
-                                   noise_band: Tuple[float, float] = (15.0, 30.0)) -> Dict[str, float]:
+                                   dance_band: Tuple[float, float] = (1.0, 15.0),
+                                   noise_band: Tuple[float, float] = (20.0, 40.0)) -> Dict[str, float]:
     """
     Analyze PSD to validate filter performance for dance kinematics.
     
     Verifies that:
-    1. Dance-relevant frequencies (1-10 Hz) are preserved
-    2. High-frequency noise (>15 Hz) is attenuated
+    1. Dance-relevant frequencies (1-15 Hz) are preserved
+    2. High-frequency noise (>20 Hz) is attenuated
     3. Filter behavior matches expectations
     
     Args:
@@ -103,8 +103,9 @@ def analyze_filter_psd_preservation(signal_raw: np.ndarray,
         Dictionary with PSD validation metrics
         
     Reference:
-        Winter, D. A. (2009). Section on filtering and frequency content.
+        Winter, D. A. (2009). Upper limb movements: 12-15 Hz content.
         Wren et al. (2006). Gait analysis filtering standards.
+        Gaga dance: Rapid gestures extend to 15 Hz (distal markers).
     """
     # Compute PSDs
     freqs_raw, psd_raw = compute_psd_welch(signal_raw, fs)

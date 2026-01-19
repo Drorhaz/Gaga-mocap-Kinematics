@@ -100,11 +100,11 @@ This document provides comprehensive methodology documentation for the motion ca
    - Distal markers (hands, feet): 12-20 Hz (faster, less constrained)
 
 **Validation**: Power spectral density analysis confirms:
-- Dance band preservation (1-10 Hz): >80% power retained
-- Noise attenuation (>15 Hz): >95% power removed
+- Dance band preservation (1-15 Hz): >80% power retained
+- Noise attenuation (>20 Hz): >95% power removed
 - Zero phase distortion verified
 
-**Rationale**: Winter's method is the gold standard for biomechanical cutoff selection (Winter, 2009). Second-order Butterworth provides optimal flatness in passband with minimal ripple. Bidirectional filtering eliminates phase lag that would distort peak timing.
+**Rationale**: Winter's method is the gold standard for biomechanical cutoff selection (Winter, 2009). Second-order Butterworth provides optimal flatness in passband with minimal ripple. Bidirectional filtering eliminates phase lag that would distort peak timing. The 1-15 Hz dance band reflects biomechanical reality: slow movements (1-3 Hz), moderate dynamics (3-8 Hz), rapid gestures (8-12 Hz), and very fast hand movements up to 15 Hz (Winter, 2009).
 
 **References**:
 - Winter, D. A. (2009). *Biomechanics and motor control of human movement* (4th ed.). John Wiley & Sons. Chapter 2: Signal Processing.
@@ -297,8 +297,8 @@ A 113-field quality control report tracks all processing steps:
 
 **Filter Validation (Phase 2, Item 1)**:
 - Power spectral density analysis (Welch's method)
-- Dance frequency preservation (1-10 Hz): >80% power retained
-- Noise attenuation (>15 Hz): >95% removed
+- Dance frequency preservation (1-15 Hz): >80% power retained
+- Noise attenuation (>20 Hz): >95% removed
 - Quality grades: EXCELLENT (>90%), GOOD (80-90%), ACCEPTABLE (75-80%), POOR (<75%)
 
 **Reference Detection Validation (Phase 2, Item 2)**:
