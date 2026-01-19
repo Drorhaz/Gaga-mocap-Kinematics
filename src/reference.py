@@ -1,5 +1,6 @@
 import numpy as np
 from scipy.spatial.transform import Rotation as R
+import logging
 
 from .quaternion_ops import (
     quat_normalize,
@@ -8,6 +9,20 @@ from .quaternion_ops import (
     quat_mul,
     quat_inv,
 )
+
+logger = logging.getLogger(__name__)
+
+# Import reference validation (optional - only if module exists)
+try:
+    from .reference_validation import (
+        validate_reference_window,
+        validate_reference_stability,
+        compute_motion_profile
+    )
+    REF_VALIDATION_AVAILABLE = True
+except ImportError:
+    REF_VALIDATION_AVAILABLE = False
+    logger.warning("Reference validation module not available - validation metrics will be skipped")
 
 def markley_mean_quat(Q):
     A = np.zeros((4, 4))
@@ -149,5 +164,33 @@ def compute_q_ref_and_ref_qc(time_s, q_local, ref_info, joints_export_idx, joint
         "identity_errors_by_joint_idx": identity_errors,
         "ref_std_by_joint_idx": ref_stds,
     }
+    
+    # Reference Validation (Research Validation Phase 1 - Item 2)
+    if REF_VALIDATION_AVAILABLE:
+        try:
+            logger.info("Running reference validation to verify reference quality...")
+            
+            # Validate reference window quality
+            window_validation = validate_reference_window(
+                time_s, q_local, ref_info["ref_start"], ref_info["ref_end"],
+                joints_viz_idx, cfg["FS_TARGET"], strict_thresholds=True
+            )
+            qc['reference_window_validation'] = window_validation
+            
+            # Validate reference stability
+            stability_validation = validate_reference_stability(
+                q_ref, q_local, ref_info["ref_start"], ref_info["ref_end"],
+                time_s, joints_viz_idx
+            )
+            qc['reference_stability_validation'] = stability_validation
+            
+            logger.info(f"Reference Validation: Window status={window_validation.get('status', 'UNKNOWN')}, "
+                       f"Mean motion={window_validation.get('mean_motion_rad_s', 0):.3f} rad/s")
+            
+        except Exception as e:
+            logger.warning(f"Reference validation failed: {e}")
+            qc['reference_validation'] = {'status': 'ERROR', 'error': str(e)}
+    else:
+        logger.info("Reference validation skipped (module not available)")
 
     return q_ref, qc

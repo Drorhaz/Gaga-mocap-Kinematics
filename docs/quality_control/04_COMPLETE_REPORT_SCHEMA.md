@@ -1,6 +1,6 @@
 # 📊 COMPLETE MASTER QUALITY REPORT SCHEMA v2.0
 
-## Updated Field Count: **22 → 80+ Fields**
+## Updated Field Count: **22 → 86 Fields**
 
 This document provides the **complete, final schema** for the enhanced Master Quality Report with full joint identification tracking.
 
@@ -95,7 +95,7 @@ This document provides the **complete, final schema** for the enhanced Master Qu
 
 ---
 
-### **SECTION 6: REFERENCE QUALITY (11 fields)**
+### **SECTION 6: REFERENCE QUALITY (17 fields)**
 
 | Field | Type | Source | Description |
 |-------|------|--------|-------------|
@@ -111,6 +111,19 @@ This document provides the **complete, final schema** for the enhanced Master Qu
 | `Calibration_Grade` | str | step_05 | GOLD/SILVER/BRONZE/LOCKED |
 | `Left_Arm_Offset_Deg` | float | step_05 | V-pose correction |
 | `Right_Arm_Offset_Deg` | float | step_05 | V-pose correction |
+| `Ref_Validation_Status` | str | step_05 | "PASS" / "WARN_SHORT" / "WARN_MOTION" / "FAIL" |
+| `Ref_Validation_Mean_Motion_Rad_S` | float | step_05 | Validated motion in window (rad/s) |
+| `Ref_Validation_Std_Motion_Rad_S` | float | step_05 | Validated motion variability |
+| `Ref_Stability_Identity_Error_Rad` | float | step_05 | Internal consistency (rad) |
+| `Ref_Stability_Max_Jump_Rad` | float | step_05 | Maximum discontinuity in window |
+| `Ref_Is_Early_In_Recording` | bool | step_05 | Window found in first 10s |
+
+**Reference Validation (Research Phase 1 - Item 2):**
+- Window validation: Ensures static pose meets research criteria (Kok et al. 2017)
+- Stability validation: Checks internal consistency and discontinuities
+- Motion thresholds: Mean <0.3 rad/s (strict) or <0.5 rad/s (relaxed)
+- Duration: Prefer >1.0 second windows
+- References: Kok et al. (2017), Roetenberg et al. (2009), Sabatini (2006)
 
 ---
 
@@ -192,13 +205,13 @@ This document provides the **complete, final schema** for the enhanced Master Qu
 | Preprocessing | 5 | 13 | +8 |
 | Temporal Validation | 0 | 3 | +3 |
 | Filtering Validation | 0 | 13 | +13 |
-| Reference Quality | 2 | 11 | +9 |
+| Reference Quality | 2 | 17 | +15 |
 | Signal Quality | 3 | 5 | +2 |
 | Kinematic Metrics | 4 | 14 | +10 |
 | Physiological Validation | 0 | 8 | +8 |
 | Effort Metrics | 2 | 3 | +1 |
 | Quality Scoring | 3 | 3 | 0 |
-| **TOTAL** | **22** | **80** | **+58** |
+| **TOTAL** | **22** | **86** | **+64** |
 
 ---
 
