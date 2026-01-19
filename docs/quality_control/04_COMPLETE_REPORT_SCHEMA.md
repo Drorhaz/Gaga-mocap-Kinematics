@@ -1,6 +1,6 @@
 # 📊 COMPLETE MASTER QUALITY REPORT SCHEMA v2.0
 
-## Updated Field Count: **22 → 91 Fields**
+## Updated Field Count: **22 → 98 Fields**
 
 This document provides the **complete, final schema** for the enhanced Master Quality Report with full joint identification tracking.
 
@@ -147,7 +147,7 @@ This document provides the **complete, final schema** for the enhanced Master Qu
 
 ---
 
-### **SECTION 8: SIGNAL QUALITY (5 fields)**
+### **SECTION 8: SIGNAL QUALITY (12 fields)**
 
 | Field | Type | Source | Description |
 |-------|------|--------|-------------|
@@ -156,6 +156,21 @@ This document provides the **complete, final schema** for the enhanced Master Qu
 | `Quat_Norm_Error` | float | step_06 | Max quaternion error |
 | `Quat_Norm_Error_Joint` | str | step_06 | **Which joint has error** |
 | `Quat_Norm_Error_Frame` | int | step_06 | **When error occurred** |
+| `Quat_Max_Norm_Deviation` | float | step_02 | Maximum quaternion norm drift |
+| `Quat_Mean_Norm_Deviation` | float | step_02 | Average quaternion norm drift |
+| `Quat_Drift_Detected` | bool | step_02 | Significant drift detected (>0.01) |
+| `Quat_Drift_Status` | str | step_02 | "EXCELLENT" / "GOOD" / "ACCEPTABLE" / "POOR" |
+| `Quat_Drift_Percentage` | float | step_02 | % of frames with drift |
+| `Quat_Continuity_Breaks` | int | step_02 | Number of hemisphere discontinuities |
+| `Quat_Integrity_Status` | str | step_02 | Overall quaternion integrity status |
+
+**Quaternion Normalization (Research Phase 1 - Item 4):**
+- Frame-by-frame drift detection and correction
+- Normalization: <0.001 = GOOD, <0.01 = ACCEPTABLE, >0.01 = POOR
+- Continuity enforcement prevents double-cover jumps
+- Drift accumulation detected over long sequences
+- Critical for angular velocity and orientation accuracy
+- References: Grassia (1998), Shoemake (1985), Diebel (2006)
 
 ---
 
@@ -227,12 +242,12 @@ This document provides the **complete, final schema** for the enhanced Master Qu
 | Filtering Validation | 0 | 13 | +13 |
 | Reference Quality | 2 | 17 | +15 |
 | Coordinate System Documentation | 0 | 5 | +5 |
-| Signal Quality | 3 | 5 | +2 |
+| Signal Quality | 3 | 12 | +9 |
 | Kinematic Metrics | 4 | 14 | +10 |
 | Physiological Validation | 0 | 8 | +8 |
 | Effort Metrics | 2 | 3 | +1 |
 | Quality Scoring | 3 | 3 | 0 |
-| **TOTAL** | **22** | **91** | **+69** |
+| **TOTAL** | **22** | **98** | **+76** |
 
 ---
 
