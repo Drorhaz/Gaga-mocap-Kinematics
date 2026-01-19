@@ -31,6 +31,66 @@ except ImportError:
     logger.warning("PSD validation module not available - validation metrics will be skipped")
 
 
+# Body region definitions for per-region filtering
+BODY_REGIONS = {
+    'trunk': {
+        'patterns': ['Pelvis', 'Spine', 'Torso', 'Hips', 'Abdomen', 'Chest', 'Back'],
+        'cutoff_range': (6, 8),
+        'rationale': 'Slow, constrained core movements'
+    },
+    'head': {
+        'patterns': ['Head', 'Neck'],
+        'cutoff_range': (7, 9),
+        'rationale': 'Moderate dynamics, somewhat constrained'
+    },
+    'upper_proximal': {
+        'patterns': ['Shoulder', 'Clavicle', 'Scapula', 'UpperArm'],
+        'cutoff_range': (8, 10),
+        'rationale': 'Moderate-fast, semi-constrained'
+    },
+    'upper_distal': {
+        'patterns': ['Elbow', 'Forearm', 'Wrist', 'Hand', 'Finger'],
+        'cutoff_range': (10, 12),
+        'rationale': 'Very fast gestures, unconstrained'
+    },
+    'lower_proximal': {
+        'patterns': ['Thigh', 'Knee', 'UpperLeg'],
+        'cutoff_range': (8, 10),
+        'rationale': 'Moderate-fast locomotion'
+    },
+    'lower_distal': {
+        'patterns': ['Ankle', 'Foot', 'Toe', 'Heel', 'LowerLeg'],
+        'cutoff_range': (9, 11),
+        'rationale': 'Fast, ground contact impacts'
+    }
+}
+
+
+def classify_marker_region(marker_name: str) -> str:
+    """
+    Classify a marker into a body region based on name patterns.
+    
+    Args:
+        marker_name: Marker column name (e.g., 'RightHand__px')
+        
+    Returns:
+        Region name ('trunk', 'head', 'upper_proximal', 'upper_distal', 
+                     'lower_proximal', 'lower_distal', 'unknown')
+    """
+    # Extract base marker name (remove axis suffix)
+    base_name = marker_name.replace('__px', '').replace('__py', '').replace('__pz', '')
+    
+    # Check each region's patterns
+    for region, config in BODY_REGIONS.items():
+        for pattern in config['patterns']:
+            if pattern.lower() in base_name.lower():
+                return region
+    
+    # Default to upper_distal if unknown (conservative for dance)
+    logger.debug(f"Marker '{marker_name}' not matched to any region, defaulting to 'upper_distal'")
+    return 'upper_distal'
+
+
 def winter_residual_analysis(signal: np.ndarray, 
                        fs: float, 
                        fmin: int = 1, 
@@ -157,7 +217,8 @@ def apply_winter_filter(df: pd.DataFrame,
                      allow_fmax: bool = False,
                      min_cutoff_trunk: Optional[float] = 6.0,
                      min_cutoff_distal: Optional[float] = 8.0,
-                     use_trunk_global: bool = False) -> Tuple[pd.DataFrame, Dict]:
+                     use_trunk_global: bool = False,
+                     per_region_filtering: bool = False) -> Tuple[pd.DataFrame, Dict]:
     """
     Apply Winter low-pass filter to position columns only.
     
@@ -174,6 +235,7 @@ def apply_winter_filter(df: pd.DataFrame,
         min_cutoff_trunk: Biomechanical minimum cutoff for trunk markers (Hz)
         min_cutoff_distal: Biomechanical minimum cutoff for distal markers (Hz)
         use_trunk_global: If True, run Winter on trunk markers only and apply to all columns
+        per_region_filtering: If True, apply different cutoffs per body region (recommended for dance)
         
     Returns:
         Tuple of (filtered DataFrame, metadata dict)
@@ -183,7 +245,15 @@ def apply_winter_filter(df: pd.DataFrame,
         
     Note:
         For dance/mocap: Distal segments (hands/feet) need higher cutoffs than trunk
-        because they contain faster real motion. Typical: Trunk=6Hz, Distal=8Hz
+        because they contain faster real motion. Typical: Trunk=6-8Hz, Distal=10-12Hz
+        
+        Per-region filtering (new feature):
+        - Trunk: 6-8 Hz (slow core movements)
+        - Head: 7-9 Hz (moderate dynamics)
+        - Upper proximal: 8-10 Hz (shoulders)
+        - Upper distal: 10-12 Hz (hands - rapid gestures)
+        - Lower proximal: 8-10 Hz (thighs, knees)
+        - Lower distal: 9-11 Hz (feet, ankles)
     """
     # Ticket 10.5: Build valid position columns list and log exclusions
     pos_cols_valid = []
@@ -300,51 +370,137 @@ def apply_winter_filter(df: pd.DataFrame,
             logger.info(f"Multi-signal Winter analysis: median cutoff = {fc:.1f} Hz")
             logger.info(f"Individual cutoffs: {[f'{c:.1f}' for c in cutoffs]}")
     
-    # Check for Winter analysis failure
-    if not allow_fmax and fc >= fmax - 1:
-        raise ValueError(f"WINTER ANALYSIS FAILED: cutoff = {fc:.1f} Hz (at fmax). "
-                        f"This indicates data is already oversmoothed or method applied too late. "
-                        f"Expected dance cutoff: 4-10 Hz. "
-                        f"To override, set allow_fmax=True.")
+    # PER-REGION FILTERING (NEW FEATURE)
+    if per_region_filtering:
+        logger.info("=== PER-REGION FILTERING ENABLED ===")
+        logger.info("Classifying markers by body region and applying region-specific cutoffs...")
+        
+        # Classify all markers by region
+        marker_regions = {}
+        region_columns = {region: [] for region in BODY_REGIONS.keys()}
+        region_columns['unknown'] = []
+        
+        for col in pos_cols_valid:
+            region = classify_marker_region(col)
+            marker_regions[col] = region
+            if region in region_columns:
+                region_columns[region].append(col)
+            else:
+                region_columns['unknown'].append(col)
+        
+        # Log region classification
+        for region, cols in region_columns.items():
+            if cols:
+                logger.info(f"  {region}: {len(cols)} markers")
+        
+        # Apply Winter analysis per region
+        df_out = df.copy()
+        region_cutoffs = {}
+        
+        for region, cols in region_columns.items():
+            if not cols or region == 'unknown':
+                continue
+            
+            # Get region configuration
+            region_config = BODY_REGIONS.get(region, {'cutoff_range': (8, 12), 'rationale': 'default'})
+            min_cutoff_region, max_cutoff_region = region_config['cutoff_range']
+            
+            # Select representative column for this region (most dynamic)
+            col_scores = {col: np.nanstd(np.diff(df[col].values)) for col in cols}
+            rep_col_region = max(col_scores, key=col_scores.get)
+            
+            # Run Winter analysis
+            fc_region = winter_residual_analysis(
+                df[rep_col_region].values, fs, fmax=fmax,
+                min_cutoff=min_cutoff_region, body_region=region
+            )
+            
+            # Clamp to region-specific range
+            fc_region = np.clip(fc_region, min_cutoff_region, max_cutoff_region)
+            region_cutoffs[region] = fc_region
+            
+            logger.info(f"  {region}: cutoff={fc_region:.1f} Hz (range: {min_cutoff_region}-{max_cutoff_region} Hz, "
+                       f"rep_col={rep_col_region.split('__')[0]})")
+            
+            # Design and apply filter for this region
+            b_region, a_region = butter(N=2, Wn=fc_region/(0.5*fs), btype='low')
+            
+            for col in cols:
+                df_out[col] = filtfilt(b_region, a_region, df[col].values.astype(float))
+        
+        # Handle unknown markers with median cutoff
+        if region_columns['unknown']:
+            median_cutoff = np.median(list(region_cutoffs.values()))
+            logger.warning(f"  unknown: {len(region_columns['unknown'])} markers, using median cutoff={median_cutoff:.1f} Hz")
+            b_unknown, a_unknown = butter(N=2, Wn=median_cutoff/(0.5*fs), btype='low')
+            for col in region_columns['unknown']:
+                df_out[col] = filtfilt(b_unknown, a_unknown, df[col].values.astype(float))
+            region_cutoffs['unknown'] = median_cutoff
+        
+        # Update metadata for per-region filtering
+        metadata = {
+            "filtering_mode": "per_region",
+            "region_cutoffs": region_cutoffs,
+            "marker_regions": marker_regions,
+            "n_regions": len([r for r in region_cutoffs.keys() if r != 'unknown']),
+            "cutoff_range": (min(region_cutoffs.values()), max(region_cutoffs.values())),
+            "fmax": fmax,
+            "pos_cols_valid": pos_cols_valid,
+            "pos_cols_excluded": excluded_cols,
+            "total_pos_cols": len(pos_cols)
+        }
+        
+        logger.info(f"Per-region filtering complete: {len(region_cutoffs)} regions, "
+                   f"cutoff range: {metadata['cutoff_range'][0]:.1f}-{metadata['cutoff_range'][1]:.1f} Hz")
     
-    # Design filter with optimal cutoff
-    b, a = butter(N=2, Wn=fc/(0.5*fs), btype='low')
+    else:
+        # SINGLE GLOBAL CUTOFF (ORIGINAL BEHAVIOR)
+        # Check for Winter analysis failure
+        if not allow_fmax and fc >= fmax - 1:
+            raise ValueError(f"WINTER ANALYSIS FAILED: cutoff = {fc:.1f} Hz (at fmax). "
+                            f"This indicates data is already oversmoothed or method applied too late. "
+                            f"Expected dance cutoff: 4-10 Hz. "
+                            f"To override, set allow_fmax=True.")
+        
+        # Design filter with optimal cutoff
+        b, a = butter(N=2, Wn=fc/(0.5*fs), btype='low')
+        
+        # Apply filter to valid position columns only
+        df_out = df.copy()
+        for col in pos_cols_valid:
+            df_out[col] = filtfilt(b, a, df[col].values.astype(float))
+        
+        # Prepare metadata
+        metadata = {
+            "filtering_mode": "single_global",
+            "cutoff_hz": fc,
+            "rep_col": chosen_rep_col,
+            "fmin": 1,
+            "fmax": fmax,
+            "multi_signal_analysis": rep_col is None,
+            "individual_cutoffs": cutoffs if rep_col is None else [fc],
+            "allow_fmax": allow_fmax,
+            "pos_cols_valid": pos_cols_valid,
+            "pos_cols_excluded": excluded_cols,
+            "total_pos_cols": len(pos_cols),
+            # Biomechanical guardrails metadata
+            "biomechanical_guardrails": {
+                "enabled": True,
+                "min_cutoff_trunk": min_cutoff_trunk,
+                "min_cutoff_distal": min_cutoff_distal,
+                "use_trunk_global": use_trunk_global,
+                "strategy": "trunk_global" if use_trunk_global else "multi_signal_with_guardrails"
+            }
+        }
     
-    # Apply filter to valid position columns only
-    df_out = df.copy()
-    for col in pos_cols_valid:
-        df_out[col] = filtfilt(b, a, df[col].values.astype(float))
-    
-    # Ensure quaternion columns are unchanged
+    # Ensure quaternion columns are unchanged (both modes)
     quat_cols = [col for col in df.columns if col.endswith(('__qx', '__qy', '__qz', '__qw'))]
     for col in quat_cols:
         if col in df.columns:
             df_out[col] = df[col].values
     
-    # Prepare metadata
-    metadata = {
-        "cutoff_hz": fc,
-        "rep_col": chosen_rep_col,
-        "fmin": 1,
-        "fmax": fmax,
-        "multi_signal_analysis": rep_col is None,
-        "individual_cutoffs": cutoffs if rep_col is None else [fc],
-        "allow_fmax": allow_fmax,
-        "pos_cols_valid": pos_cols_valid,
-        "pos_cols_excluded": excluded_cols,
-        "total_pos_cols": len(pos_cols),
-        # Biomechanical guardrails metadata
-        "biomechanical_guardrails": {
-            "enabled": True,
-            "min_cutoff_trunk": min_cutoff_trunk,
-            "min_cutoff_distal": min_cutoff_distal,
-            "use_trunk_global": use_trunk_global,
-            "strategy": "trunk_global" if use_trunk_global else "multi_signal_with_guardrails"
-        }
-    }
-    
     # PSD Validation (Research Validation Phase 1 - Item 1)
-    if PSD_VALIDATION_AVAILABLE:
+    if PSD_VALIDATION_AVAILABLE and not per_region_filtering:
         try:
             logger.info("Running PSD validation to verify filter quality...")
             
@@ -365,10 +521,17 @@ def apply_winter_filter(df: pd.DataFrame,
             logger.warning(f"PSD validation failed: {e}")
             metadata['psd_validation'] = {'status': 'ERROR', 'error': str(e)}
     else:
-        logger.info("PSD validation skipped (module not available)")
-        metadata['psd_validation'] = {'status': 'SKIPPED', 'reason': 'module_not_available'}
+        if per_region_filtering:
+            logger.info("PSD validation skipped (per-region filtering - validate per region separately)")
+        else:
+            logger.info("PSD validation skipped (module not available)")
+        metadata['psd_validation'] = {'status': 'SKIPPED', 'reason': 'per_region_mode' if per_region_filtering else 'module_not_available'}
     
-    logger.info(f"Winter filtering applied: cutoff={fc} Hz, {len(pos_cols_valid)}/{len(pos_cols)} position columns filtered")
+    # Log completion
+    if per_region_filtering:
+        logger.info(f"Per-region Winter filtering complete: {len(pos_cols_valid)}/{len(pos_cols)} position columns filtered")
+    else:
+        logger.info(f"Winter filtering applied: cutoff={fc} Hz, {len(pos_cols_valid)}/{len(pos_cols)} position columns filtered")
     
     return df_out, metadata
 
