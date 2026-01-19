@@ -15,9 +15,9 @@
     "hemisphere_alignment_applied": true,
     "v_pose_correction_applied": true,
     "v_pose_correction_quat_xyzw": [
-        0.5107615468141412,
+        0.5107615468141411,
         0.0,
-        -0.22049460591966563,
+        -0.22049460591966555,
         0.8309661672152227
     ],
     "time_window": [
