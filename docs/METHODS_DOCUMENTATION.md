@@ -87,17 +87,22 @@ This document provides comprehensive methodology documentation for the motion ca
 
 **Algorithm**:
 1. **Cutoff Selection** (Winter's Residual Analysis):
-   - Compute power spectral density (Welch's method: 256-sample windows, 50% overlap, Hanning window)
-   - Test cutoffs from 1-30 Hz
-   - Select cutoff where residual power <5% of signal power
+   - Compute RMS residual for each test cutoff frequency
+   - Test cutoffs from 1-12 Hz (appropriate for dance kinematics)
+   - Select cutoff at "knee point" where residual RMS ≤ 1.05 × noise floor
+   - Apply biomechanical guardrails: trunk ≥ 6 Hz, distal ≥ 8 Hz
    
 2. **Filter Application**:
    - Design: \( H(s) = \frac{\omega_c^2}{s^2 + \sqrt{2}\omega_c s + \omega_c^2} \)
    - Implementation: scipy.signal.filtfilt (zero phase shift)
    
-3. **Biomechanical Guardrails**:
-   - Trunk markers: 8-12 Hz (slower, more constrained)
-   - Distal markers (hands, feet): 12-20 Hz (faster, less constrained)
+3. **Biomechanical Guardrails** (per-region filtering):
+   - Trunk markers: 6-8 Hz (slow, constrained core movements)
+   - Head/Neck: 7-9 Hz (moderate dynamics)
+   - Upper proximal (shoulders): 8-10 Hz (semi-constrained)
+   - Upper distal (hands): 10-12 Hz (rapid gestures - Winter, 2009)
+   - Lower proximal (thighs): 8-10 Hz (locomotion dynamics)
+   - Lower distal (feet): 9-11 Hz (ground contact impacts)
 
 **Validation**: Power spectral density analysis confirms:
 - Dance band preservation (1-15 Hz): >80% power retained

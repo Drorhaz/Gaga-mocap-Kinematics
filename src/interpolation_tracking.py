@@ -37,7 +37,9 @@ def compute_per_joint_interpolation_stats(df_pre, df_post, max_gap):
     
     for joint in joints:
         joint_cols = [f"{joint}__{suffix}" for suffix in ['px', 'py', 'pz', 'qx', 'qy', 'qz', 'qw']]
-        joint_cols = [c for c in joint_cols if c in df_pre.columns]
+        # CRITICAL: Check that columns exist in BOTH dataframes
+        # Some joints may be filtered out during standardization (Cell 03)
+        joint_cols = [c for c in joint_cols if c in df_pre.columns and c in df_post.columns]
         
         if not joint_cols:
             continue
