@@ -8,12 +8,12 @@
             "status": true
         },
         "angular_accel": {
-            "max": 42172.89,
+            "max": 42551.5,
             "limit": 50000.0,
             "status": true
         },
         "linear_accel": {
-            "max": 38536.2,
+            "max": 38871.19,
             "limit": 100000.0,
             "status": true
         }
@@ -24,7 +24,7 @@
         "max_quat_norm_err": 0.0
     },
     "movement_metrics": {
-        "path_length_mm": 25666.2,
+        "path_length_mm": 25475.9,
         "intensity_index": 0.084
     },
     "pipeline_params": {
@@ -53,16 +53,16 @@
         },
         "total_frames": 30798,
         "counts": {
-            "warning": 146,
+            "warning": 156,
             "alert": 0,
             "critical": 0,
-            "total_outliers": 146
+            "total_outliers": 156
         },
         "percentages": {
-            "warning": 0.4741,
+            "warning": 0.5065,
             "alert": 0.0,
             "critical": 0.0,
-            "total_outliers": 0.4741
+            "total_outliers": 0.5065
         },
         "consecutive_runs": {
             "max_consecutive_any_outlier": 9,
@@ -79,7 +79,7 @@
                 "critical_frames": 0
             },
             "angular_acceleration": {
-                "warning_frames": 32,
+                "warning_frames": 42,
                 "alert_frames": 0,
                 "critical_frames": 0
             },

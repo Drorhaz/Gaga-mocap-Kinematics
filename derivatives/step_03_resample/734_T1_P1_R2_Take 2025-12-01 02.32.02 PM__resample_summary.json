@@ -1,0 +1,10 @@
+{
+    "run_id": "734_T1_P1_R2_Take 2025-12-01 02.32.02 PM",
+    "target_fs": 120.0,
+    "time_grid_std_dt": 0.0,
+    "temporal_status": "PERFECT",
+    "interpolation_methods": {
+        "positions": "CubicSpline",
+        "rotations": "SLERP"
+    }
+}

@@ -1,0 +1,79 @@
+{
+    "audit": {
+        "offsets": {
+            "Left": {
+                "bone_detected": "LeftArm",
+                "measured_angle_deg": -5.61,
+                "correction_value_deg": 5.61,
+                "is_significant": true
+            },
+            "Right": {
+                "bone_detected": "RightArm",
+                "measured_angle_deg": -6.09,
+                "correction_value_deg": 6.09,
+                "is_significant": true
+            }
+        },
+        "scaling": 1.0,
+        "bone_m": {
+            "Spine": 83.0773,
+            "Spine1": 247.5948,
+            "Neck": 257.4406,
+            "Head": 145.5578,
+            "LeftUpLeg": 96.8706,
+            "LeftLeg": 352.3138,
+            "LeftFoot": 382.7717,
+            "LeftToeBase": 158.3653,
+            "RightUpLeg": 96.8712,
+            "RightLeg": 352.3149,
+            "RightFoot": 382.7753,
+            "RightToeBase": 158.3652,
+            "LeftShoulder": 195.8685,
+            "LeftArm": 149.6465,
+            "LeftForeArm": 351.9655,
+            "LeftHand": 145.6773,
+            "RightShoulder": 195.8687,
+            "RightArm": 149.6401,
+            "RightForeArm": 351.9611,
+            "RightHand": 145.6734,
+            "LeftHandThumb1": 55.6943,
+            "LeftHandThumb2": 30.5772,
+            "LeftHandThumb3": 26.1355,
+            "LeftHandIndex1": 111.3248,
+            "LeftHandIndex2": 46.0124,
+            "LeftHandIndex3": 23.0063
+        }
+    },
+    "config_params": {
+        "calibration_thresholds": {
+            "max_allowable_offset_deg": 5.0,
+            "arm_span_stature_ratio_min": 0.85,
+            "femur_length_stature_ratio": 0.245,
+            "max_femur_error_pct": 15.0
+        },
+        "naming_conventions": {
+            "arm_segments": [
+                "L_Arm",
+                "LeftArm",
+                "L_UpArm",
+                "R_Arm",
+                "RightArm",
+                "R_UpArm"
+            ],
+            "femur_segments": [
+                "UpLeg",
+                "Thigh",
+                "Femur"
+            ]
+        },
+        "gap_filling": {
+            "mad_multiplier": 6.0,
+            "max_gap_s": 0.1
+        },
+        "metadata": {
+            "reference_author": "R\u05b3\u00a1cz et al. (2025)",
+            "standard": "ISB / CAST Technique"
+        }
+    },
+    "is_corrected": true
+}

@@ -15,9 +15,9 @@
     12
   ],
   "rms_residuals": [],
-  "knee_point_hz": 8.0,
-  "knee_point_found": true,
-  "representative_signal": "multi_signal_median(5_cols)",
+  "knee_point_hz": null,
+  "knee_point_found": false,
+  "representative_signal": "N/A",
   "analysis_method": "kneedle_algorithm",
   "frequency_range": [
     1,

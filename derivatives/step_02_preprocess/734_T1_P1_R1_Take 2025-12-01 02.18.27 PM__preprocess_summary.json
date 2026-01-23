@@ -12,103 +12,7 @@
     "worst_bone": "Hips->Spine",
     "interpolation_method": "linear_quaternion_normalized",
     "interpolation_per_joint": {
-        "LeftHand": {
-            "method": "none_required",
-            "method_category": "pristine",
-            "frames_fixed_percent": 0.0,
-            "frames_fixed_count": 0,
-            "max_gap_frames": 0,
-            "nans_remaining": 0
-        },
-        "LeftToeBase": {
-            "method": "none_required",
-            "method_category": "pristine",
-            "frames_fixed_percent": 0.0,
-            "frames_fixed_count": 0,
-            "max_gap_frames": 0,
-            "nans_remaining": 0
-        },
-        "LeftLeg": {
-            "method": "none_required",
-            "method_category": "pristine",
-            "frames_fixed_percent": 0.0,
-            "frames_fixed_count": 0,
-            "max_gap_frames": 0,
-            "nans_remaining": 0
-        },
-        "RightForeArm": {
-            "method": "none_required",
-            "method_category": "pristine",
-            "frames_fixed_percent": 0.0,
-            "frames_fixed_count": 0,
-            "max_gap_frames": 0,
-            "nans_remaining": 0
-        },
         "Spine": {
-            "method": "none_required",
-            "method_category": "pristine",
-            "frames_fixed_percent": 0.0,
-            "frames_fixed_count": 0,
-            "max_gap_frames": 0,
-            "nans_remaining": 0
-        },
-        "LeftArm": {
-            "method": "none_required",
-            "method_category": "pristine",
-            "frames_fixed_percent": 0.0,
-            "frames_fixed_count": 0,
-            "max_gap_frames": 0,
-            "nans_remaining": 0
-        },
-        "LeftHandThumb3": {
-            "method": "none_required",
-            "method_category": "pristine",
-            "frames_fixed_percent": 0.0,
-            "frames_fixed_count": 0,
-            "max_gap_frames": 0,
-            "nans_remaining": 0
-        },
-        "LeftShoulder": {
-            "method": "none_required",
-            "method_category": "pristine",
-            "frames_fixed_percent": 0.0,
-            "frames_fixed_count": 0,
-            "max_gap_frames": 0,
-            "nans_remaining": 0
-        },
-        "Head": {
-            "method": "none_required",
-            "method_category": "pristine",
-            "frames_fixed_percent": 0.0,
-            "frames_fixed_count": 0,
-            "max_gap_frames": 0,
-            "nans_remaining": 0
-        },
-        "RightLeg": {
-            "method": "none_required",
-            "method_category": "pristine",
-            "frames_fixed_percent": 0.0,
-            "frames_fixed_count": 0,
-            "max_gap_frames": 0,
-            "nans_remaining": 0
-        },
-        "LeftForeArm": {
-            "method": "none_required",
-            "method_category": "pristine",
-            "frames_fixed_percent": 0.0,
-            "frames_fixed_count": 0,
-            "max_gap_frames": 0,
-            "nans_remaining": 0
-        },
-        "LeftHandThumb1": {
-            "method": "none_required",
-            "method_category": "pristine",
-            "frames_fixed_percent": 0.0,
-            "frames_fixed_count": 0,
-            "max_gap_frames": 0,
-            "nans_remaining": 0
-        },
-        "RightArm": {
             "method": "none_required",
             "method_category": "pristine",
             "frames_fixed_percent": 0.0,
@@ -124,7 +28,7 @@
             "max_gap_frames": 0,
             "nans_remaining": 0
         },
-        "LeftHandIndex1": {
+        "LeftFoot": {
             "method": "none_required",
             "method_category": "pristine",
             "frames_fixed_percent": 0.0,
@@ -132,7 +36,7 @@
             "max_gap_frames": 0,
             "nans_remaining": 0
         },
-        "Hips": {
+        "RightLeg": {
             "method": "none_required",
             "method_category": "pristine",
             "frames_fixed_percent": 0.0,
@@ -140,15 +44,7 @@
             "max_gap_frames": 0,
             "nans_remaining": 0
         },
-        "RightToeBase": {
-            "method": "none_required",
-            "method_category": "pristine",
-            "frames_fixed_percent": 0.0,
-            "frames_fixed_count": 0,
-            "max_gap_frames": 0,
-            "nans_remaining": 0
-        },
-        "LeftHandThumb2": {
+        "LeftArm": {
             "method": "none_required",
             "method_category": "pristine",
             "frames_fixed_percent": 0.0,
@@ -164,23 +60,7 @@
             "max_gap_frames": 0,
             "nans_remaining": 0
         },
-        "RightFoot": {
-            "method": "none_required",
-            "method_category": "pristine",
-            "frames_fixed_percent": 0.0,
-            "frames_fixed_count": 0,
-            "max_gap_frames": 0,
-            "nans_remaining": 0
-        },
-        "RightHand": {
-            "method": "none_required",
-            "method_category": "pristine",
-            "frames_fixed_percent": 0.0,
-            "frames_fixed_count": 0,
-            "max_gap_frames": 0,
-            "nans_remaining": 0
-        },
-        "Neck": {
+        "LeftToeBase": {
             "method": "none_required",
             "method_category": "pristine",
             "frames_fixed_percent": 0.0,
@@ -196,7 +76,39 @@
             "max_gap_frames": 0,
             "nans_remaining": 0
         },
-        "LeftUpLeg": {
+        "Hips": {
+            "method": "none_required",
+            "method_category": "pristine",
+            "frames_fixed_percent": 0.0,
+            "frames_fixed_count": 0,
+            "max_gap_frames": 0,
+            "nans_remaining": 0
+        },
+        "Neck": {
+            "method": "none_required",
+            "method_category": "pristine",
+            "frames_fixed_percent": 0.0,
+            "frames_fixed_count": 0,
+            "max_gap_frames": 0,
+            "nans_remaining": 0
+        },
+        "RightHand": {
+            "method": "none_required",
+            "method_category": "pristine",
+            "frames_fixed_percent": 0.0,
+            "frames_fixed_count": 0,
+            "max_gap_frames": 0,
+            "nans_remaining": 0
+        },
+        "LeftHandThumb1": {
+            "method": "none_required",
+            "method_category": "pristine",
+            "frames_fixed_percent": 0.0,
+            "frames_fixed_count": 0,
+            "max_gap_frames": 0,
+            "nans_remaining": 0
+        },
+        "RightToeBase": {
             "method": "none_required",
             "method_category": "pristine",
             "frames_fixed_percent": 0.0,
@@ -220,7 +132,95 @@
             "max_gap_frames": 0,
             "nans_remaining": 0
         },
-        "LeftFoot": {
+        "RightForeArm": {
+            "method": "none_required",
+            "method_category": "pristine",
+            "frames_fixed_percent": 0.0,
+            "frames_fixed_count": 0,
+            "max_gap_frames": 0,
+            "nans_remaining": 0
+        },
+        "RightArm": {
+            "method": "none_required",
+            "method_category": "pristine",
+            "frames_fixed_percent": 0.0,
+            "frames_fixed_count": 0,
+            "max_gap_frames": 0,
+            "nans_remaining": 0
+        },
+        "LeftHandIndex1": {
+            "method": "none_required",
+            "method_category": "pristine",
+            "frames_fixed_percent": 0.0,
+            "frames_fixed_count": 0,
+            "max_gap_frames": 0,
+            "nans_remaining": 0
+        },
+        "LeftUpLeg": {
+            "method": "none_required",
+            "method_category": "pristine",
+            "frames_fixed_percent": 0.0,
+            "frames_fixed_count": 0,
+            "max_gap_frames": 0,
+            "nans_remaining": 0
+        },
+        "LeftHand": {
+            "method": "none_required",
+            "method_category": "pristine",
+            "frames_fixed_percent": 0.0,
+            "frames_fixed_count": 0,
+            "max_gap_frames": 0,
+            "nans_remaining": 0
+        },
+        "Head": {
+            "method": "none_required",
+            "method_category": "pristine",
+            "frames_fixed_percent": 0.0,
+            "frames_fixed_count": 0,
+            "max_gap_frames": 0,
+            "nans_remaining": 0
+        },
+        "LeftShoulder": {
+            "method": "none_required",
+            "method_category": "pristine",
+            "frames_fixed_percent": 0.0,
+            "frames_fixed_count": 0,
+            "max_gap_frames": 0,
+            "nans_remaining": 0
+        },
+        "LeftForeArm": {
+            "method": "none_required",
+            "method_category": "pristine",
+            "frames_fixed_percent": 0.0,
+            "frames_fixed_count": 0,
+            "max_gap_frames": 0,
+            "nans_remaining": 0
+        },
+        "LeftHandThumb3": {
+            "method": "none_required",
+            "method_category": "pristine",
+            "frames_fixed_percent": 0.0,
+            "frames_fixed_count": 0,
+            "max_gap_frames": 0,
+            "nans_remaining": 0
+        },
+        "LeftHandThumb2": {
+            "method": "none_required",
+            "method_category": "pristine",
+            "frames_fixed_percent": 0.0,
+            "frames_fixed_count": 0,
+            "max_gap_frames": 0,
+            "nans_remaining": 0
+        },
+        "LeftLeg": {
+            "method": "none_required",
+            "method_category": "pristine",
+            "frames_fixed_percent": 0.0,
+            "frames_fixed_count": 0,
+            "max_gap_frames": 0,
+            "nans_remaining": 0
+        },
+        "RightFoot": {
             "method": "none_required",
             "method_category": "pristine",
             "frames_fixed_percent": 0.0,
@@ -228,5 +228,12 @@
             "max_gap_frames": 0,
             "nans_remaining": 0
         }
-    }
+    },
+    "step_02_sample_time_jitter_ms": null,
+    "step_02_jitter_status": "UNKNOWN",
+    "step_02_fallback_count": 0,
+    "step_02_fallback_rate_percent": 0.0,
+    "step_02_interpolation_status": "PASS",
+    "gate_02_status": "PASS",
+    "gate_02_decision_reasons": null
 }

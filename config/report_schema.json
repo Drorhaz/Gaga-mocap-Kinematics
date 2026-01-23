@@ -1,6 +1,6 @@
 {
   "version": "2.0",
-  "generated": "2026-01-23T02:01:33.226209",
+  "generated": "2026-01-23T15:17:10.130431",
   "sections": {
     "S0": "Data Lineage & Provenance",
     "S1": "R\u00e1cz Calibration Layer",
@@ -213,6 +213,16 @@
           "type": "bool",
           "section": "S4",
           "description": "Whether Winter analysis failed"
+        },
+        "filter_params.winter_failure_reason": {
+          "type": "str",
+          "section": "S4",
+          "description": "Reason for Winter analysis failure (if any)"
+        },
+        "filter_params.decision_reason": {
+          "type": "str",
+          "section": "S4",
+          "description": "Decision rationale for filter cutoff selection"
         },
         "filter_params.biomechanical_guardrails.enabled": {
           "type": "bool",

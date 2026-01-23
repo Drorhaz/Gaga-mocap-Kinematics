@@ -1,0 +1,108 @@
+{
+    "thresholds": {
+        "angular_velocity": {
+            "WARNING": 800.0,
+            "ALERT": 1200.0,
+            "CRITICAL": 1500.0
+        },
+        "angular_acceleration": {
+            "WARNING": 35000.0,
+            "ALERT": 50000.0,
+            "CRITICAL": 80000.0
+        },
+        "linear_acceleration": {
+            "WARNING": 60000.0,
+            "ALERT": 100000.0,
+            "CRITICAL": 150000.0
+        }
+    },
+    "total_frames": 29961,
+    "counts": {
+        "warning": 799,
+        "alert": 122,
+        "critical": 3,
+        "total_outliers": 924
+    },
+    "percentages": {
+        "warning": 2.6668,
+        "alert": 0.4072,
+        "critical": 0.01,
+        "total_outliers": 3.084
+    },
+    "consecutive_runs": {
+        "max_consecutive_any_outlier": 57,
+        "max_consecutive_alert_or_critical": 12,
+        "max_consecutive_critical": 3,
+        "alarm_threshold": 5,
+        "alarm_triggered": true,
+        "runs_alert_or_critical": [
+            {
+                "start_frame": 14585,
+                "end_frame": 14590,
+                "length": 6
+            },
+            {
+                "start_frame": 26640,
+                "end_frame": 26650,
+                "length": 11
+            },
+            {
+                "start_frame": 26800,
+                "end_frame": 26802,
+                "length": 3
+            },
+            {
+                "start_frame": 27268,
+                "end_frame": 27279,
+                "length": 12
+            },
+            {
+                "start_frame": 27282,
+                "end_frame": 27283,
+                "length": 2
+            },
+            {
+                "start_frame": 27285,
+                "end_frame": 27287,
+                "length": 3
+            },
+            {
+                "start_frame": 27442,
+                "end_frame": 27445,
+                "length": 4
+            },
+            {
+                "start_frame": 27477,
+                "end_frame": 27482,
+                "length": 6
+            },
+            {
+                "start_frame": 27543,
+                "end_frame": 27550,
+                "length": 8
+            },
+            {
+                "start_frame": 27942,
+                "end_frame": 27944,
+                "length": 3
+            }
+        ]
+    },
+    "per_metric": {
+        "angular_velocity": {
+            "warning_frames": 316,
+            "alert_frames": 9,
+            "critical_frames": 3
+        },
+        "angular_acceleration": {
+            "warning_frames": 612,
+            "alert_frames": 113,
+            "critical_frames": 0
+        },
+        "linear_acceleration": {
+            "warning_frames": 0,
+            "alert_frames": 0,
+            "critical_frames": 0
+        }
+    }
+}

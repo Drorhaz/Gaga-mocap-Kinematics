@@ -319,3 +319,79 @@ def convert_dataframe_to_isb_euler(df, joint_names, verbose=True):
     df_euler = pd.DataFrame(euler_data, index=df.index)
     
     return df_euler, validation_report
+
+
+# =============================================================================
+# GATE 4: ISB COMPLIANCE AUDIT FUNCTIONS
+# =============================================================================
+
+def get_euler_sequences_audit(joint_list: list) -> dict:
+    """
+    Get ISB Euler sequences used for each joint (Gate 4 audit).
+    
+    Parameters
+    ----------
+    joint_list : list
+        List of joint names
+        
+    Returns
+    -------
+    dict with:
+        - step_06_euler_sequences_used: Dict of joint -> sequence
+        - step_06_isb_compliant: True if all joints use ISB sequences
+    """
+    sequences = {}
+    for joint in joint_list:
+        sequences[joint] = get_euler_sequence(joint)
+    
+    # Check if all joints use ISB-recommended sequences
+    # (ISB_EULER_SEQUENCES contains the recommended ones)
+    non_isb_joints = [j for j in joint_list if j not in ISB_EULER_SEQUENCES]
+    
+    return {
+        "step_06_euler_sequences_used": sequences,
+        "step_06_isb_compliant": len(non_isb_joints) == 0,
+        "step_06_non_isb_joints": non_isb_joints if non_isb_joints else None
+    }
+
+
+def assess_quaternion_health(max_quat_norm_err: float) -> dict:
+    """
+    Determine Gate 4 status based on quaternion normalization error.
+    
+    Parameters
+    ----------
+    max_quat_norm_err : float
+        Maximum quaternion normalization error across all frames/joints
+        
+    Returns
+    -------
+    dict with:
+        - step_06_quat_norm_err: The error value
+        - step_06_math_status: PASS/REVIEW/REJECT
+        - step_06_math_decision_reason: Explanation string
+        
+    Thresholds
+    ----------
+    - err <= 0.01: PASS (quaternion math stable)
+    - err 0.01-0.05: REVIEW (drift detected)
+    - err > 0.05: REJECT (Gimbal Lock likely)
+    """
+    QUAT_WARN_THRESHOLD = 0.01
+    QUAT_REJECT_THRESHOLD = 0.05
+    
+    if max_quat_norm_err > QUAT_REJECT_THRESHOLD:
+        status = "REJECT"
+        reason = f"REJECT: Quaternion Math Failure — norm_err = {max_quat_norm_err:.6f} > 0.05 (Gimbal Lock likely)"
+    elif max_quat_norm_err > QUAT_WARN_THRESHOLD:
+        status = "REVIEW"
+        reason = f"REVIEW: Quaternion Drift — norm_err = {max_quat_norm_err:.6f} > 0.01"
+    else:
+        status = "PASS"
+        reason = f"Quaternion health excellent: norm_err = {max_quat_norm_err:.6f}"
+    
+    return {
+        "step_06_quat_norm_err": max_quat_norm_err,
+        "step_06_math_status": status,
+        "step_06_math_decision_reason": reason if status != "PASS" else None
+    }

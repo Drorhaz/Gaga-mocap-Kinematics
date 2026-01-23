@@ -332,7 +332,7 @@ ls derivatives/step_06_kinematics/
 
 ---
 
-**Need help?** Check `PIPELINE_USAGE.md` or run:
+**Need help?** Check `docs/guides/PIPELINE_USAGE.md` or run:
 ```bash
 python run_pipeline.py --help
 python generate_batch_config.py --help

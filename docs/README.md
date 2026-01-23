@@ -1,146 +1,93 @@
-# 📚 Gaga Mocap Pipeline - Documentation Index
+# Gaga Mocap Pipeline - Documentation Index
 
-Welcome to the documentation hub for the Gaga Motion Capture Kinematic Analysis Pipeline.
+Complete documentation for the Gaga Motion Capture Kinematic Analysis Pipeline.
 
 ---
 
-## 📁 Documentation Structure
+## Documentation Structure
 
-### **Quality Control Documentation** → [`quality_control/`](quality_control/)
-Complete quality assurance framework including audit protocols, reporting standards, and implementation guides.
+```
+docs/
+├── README.md                    # This index file
+├── guides/                      # User guides
+│   ├── PIPELINE_USAGE.md       # Complete pipeline documentation
+│   ├── QUICK_START_734.md      # Example: processing subject 734
+│   ├── JSON_BATCH_SYSTEM.md    # JSON batch configuration guide
+│   ├── DASHBOARD_GUIDE.md      # Visualization dashboard guide
+│   └── JOINT_STATISTICS_GUIDE.md # Joint QC interpretation
+├── technical/                   # Technical documentation
+│   ├── METHODS_DOCUMENTATION.md    # Scientific methods
+│   ├── SCIENTIFIC_METHODS.md       # ISB compliance, SNR, validation
+│   ├── PIPELINE_COMPONENTS_EXPLAINED.md # Component deep-dive
+│   └── PARAMETER_SCHEMA.md         # Report field definitions
+├── quality_control/             # Quality control framework
+│   ├── 00_OVERVIEW.md          # QC documentation overview
+│   ├── 01_RECORDING_AUDIT_CHECKLIST.md
+│   ├── 02_MASTER_QUALITY_REPORT_REVIEW.md
+│   ├── 03_JOINT_LEVEL_TRACKING.md
+│   ├── 04_COMPLETE_REPORT_SCHEMA.md
+│   └── 05_ENHANCEMENT_VISUAL_SUMMARY.md
+├── ROM_DOCUMENTATION.md         # Range of Motion analysis
+└── HEIGHT_ESTIMATION_DOCUMENTATION.md # Anthropometric calculations
+```
 
-- **Quick Start**: Read [`quality_control/00_OVERVIEW.md`](quality_control/00_OVERVIEW.md)
-- **Full Suite**: 5 comprehensive documents covering audit, implementation, and rationale
+---
 
-### **Pipeline Documentation** (Project Root)
-- [`../README.md`](../README.md) - Main project README
-- [`../PIPELINE_USAGE.md`](../PIPELINE_USAGE.md) - Pipeline usage guide
-- [`../README_PIPELINE.md`](../README_PIPELINE.md) - Pipeline architecture
+## Quick Navigation
 
-### **Biomechanical Metrics Documentation**
-- [`ROM_DOCUMENTATION.md`](ROM_DOCUMENTATION.md) - **Complete ROM documentation** (merged comprehensive guide including quick start, implementation, literature analysis, and method comparison)
+### I want to...
 
-### **Configuration Documentation**
-- [`../config/`](../config/) - Configuration files and schemas
+| Task | Document |
+|------|----------|
+| **Run the pipeline** | [guides/PIPELINE_USAGE.md](guides/PIPELINE_USAGE.md) |
+| **Process batch files** | [guides/JSON_BATCH_SYSTEM.md](guides/JSON_BATCH_SYSTEM.md) |
+| **Quick start example** | [guides/QUICK_START_734.md](guides/QUICK_START_734.md) |
+| **Use the dashboard** | [guides/DASHBOARD_GUIDE.md](guides/DASHBOARD_GUIDE.md) |
+| **Interpret joint QC** | [guides/JOINT_STATISTICS_GUIDE.md](guides/JOINT_STATISTICS_GUIDE.md) |
+| **Audit a recording** | [quality_control/01_RECORDING_AUDIT_CHECKLIST.md](quality_control/01_RECORDING_AUDIT_CHECKLIST.md) |
+| **Review quality report** | [quality_control/02_MASTER_QUALITY_REPORT_REVIEW.md](quality_control/02_MASTER_QUALITY_REPORT_REVIEW.md) |
+| **Understand methods** | [technical/METHODS_DOCUMENTATION.md](technical/METHODS_DOCUMENTATION.md) |
+| **View report schema** | [technical/PARAMETER_SCHEMA.md](technical/PARAMETER_SCHEMA.md) |
+| **Access ROM data** | [ROM_DOCUMENTATION.md](ROM_DOCUMENTATION.md) |
+| **Height estimation** | [HEIGHT_ESTIMATION_DOCUMENTATION.md](HEIGHT_ESTIMATION_DOCUMENTATION.md) |
+
+---
+
+## Recommended Reading Order
+
+### For New Users
+1. [../README.md](../README.md) - Project overview
+2. [guides/PIPELINE_USAGE.md](guides/PIPELINE_USAGE.md) - How to run the pipeline
+3. [guides/QUICK_START_734.md](guides/QUICK_START_734.md) - Process your first file
+
+### For Researchers (Quality Assurance)
+1. [quality_control/00_OVERVIEW.md](quality_control/00_OVERVIEW.md) - QC framework
+2. [quality_control/01_RECORDING_AUDIT_CHECKLIST.md](quality_control/01_RECORDING_AUDIT_CHECKLIST.md) - Audit protocol
+3. [guides/JOINT_STATISTICS_GUIDE.md](guides/JOINT_STATISTICS_GUIDE.md) - Interpret results
+
+### For Developers
+1. [technical/PIPELINE_COMPONENTS_EXPLAINED.md](technical/PIPELINE_COMPONENTS_EXPLAINED.md) - Architecture
+2. [technical/SCIENTIFIC_METHODS.md](technical/SCIENTIFIC_METHODS.md) - Implementation details
+3. [technical/PARAMETER_SCHEMA.md](technical/PARAMETER_SCHEMA.md) - Data schema
+
+---
+
+## Configuration Files
+
+- [`../config/config_v1.yaml`](../config/config_v1.yaml) - Main pipeline configuration
 - [`../config/biomechanical_config.json`](../config/biomechanical_config.json) - Biomechanical thresholds
-
-### **References** (Academic Literature)
-- [`../references/`](../references/) - Academic papers and standards
-  - Winter (2009) - Biomechanics textbook
-  - Wu et al. (2005) - ISB joint coordinate standards
-  - Skurowski et al. - Artifact truncation methods
-  - Rácz et al. (2025) - CAST technique
+- [`../batch_configs/`](../batch_configs/) - Batch processing configurations
 
 ---
 
-## 🎯 Quick Navigation by Task
+## References (Academic Literature)
 
-### **I want to...**
-
-#### **Audit a Recording**
-→ [`quality_control/01_RECORDING_AUDIT_CHECKLIST.md`](quality_control/01_RECORDING_AUDIT_CHECKLIST.md)
-
-#### **Update the Master Quality Report**
-→ [`quality_control/02_MASTER_QUALITY_REPORT_REVIEW.md`](quality_control/02_MASTER_QUALITY_REPORT_REVIEW.md)
-
-#### **Understand Joint-Level Tracking**
-→ [`quality_control/03_JOINT_LEVEL_TRACKING.md`](quality_control/03_JOINT_LEVEL_TRACKING.md)
-
-#### **Get Complete Report Schema**
-→ [`quality_control/04_COMPLETE_REPORT_SCHEMA.md`](quality_control/04_COMPLETE_REPORT_SCHEMA.md)
-
-#### **See Visual Examples**
-→ [`quality_control/05_ENHANCEMENT_VISUAL_SUMMARY.md`](quality_control/05_ENHANCEMENT_VISUAL_SUMMARY.md)
-
-#### **Run the Pipeline**
-→ [`../PIPELINE_USAGE.md`](../PIPELINE_USAGE.md)
-
-#### **Process Batch Files**
-→ [`../JSON_BATCH_SYSTEM_SUMMARY.md`](../JSON_BATCH_SYSTEM_SUMMARY.md)
-
-#### **Access ROM (Range of Motion) Data**
-→ [`ROM_DOCUMENTATION.md`](ROM_DOCUMENTATION.md) - See "Quick Start" section
-
-#### **Understand ROM Computation**
-→ [`ROM_DOCUMENTATION.md`](ROM_DOCUMENTATION.md) - See "Computation Method" section
-
-#### **Compare ROM Method to Literature**
-→ [`ROM_DOCUMENTATION.md`](ROM_DOCUMENTATION.md) - See "Literature Analysis" and "Method Comparison" sections
+Located in [`../references/`](../references/):
+- Winter (2009) - Biomechanics textbook
+- Wu et al. (2005) - ISB joint coordinate standards
+- Skurowski et al. - Artifact truncation methods
+- Rácz et al. (2025) - CAST technique
 
 ---
 
-## 📊 Documentation Status
-
-| Category | Status | Last Updated |
-|----------|--------|--------------|
-| Quality Control Framework | ✅ Complete | Jan 2026 |
-| Pipeline Usage Guide | ✅ Complete | Jan 2026 |
-| Audit Checklist | ✅ Complete | Jan 2026 |
-| Report Enhancement | ✅ Complete | Jan 2026 |
-| ROM Documentation | ✅ Complete | Jan 2026 |
-| Implementation Guide | 🚧 In Progress | - |
-| API Reference | ⏳ Planned | - |
-
----
-
-## 🔄 Documentation Updates
-
-### January 2026
-- ✅ Created complete Quality Control documentation suite
-- ✅ Established audit protocol with literature-based standards
-- ✅ Defined enhanced Master Quality Report schema (22 → 75+ fields)
-- ✅ Documented joint-level tracking rationale and implementation
-- ✅ **NEW: ROM data now saved in Parquet format with full documentation**
-  - Added ROM export to Notebook 06
-  - Created comprehensive ROM documentation
-  - Documented file paths in audit trail
-
-### December 2025
-- ✅ Pipeline architecture documentation
-- ✅ Batch processing system guide
-- ✅ Biomechanical guardrails documentation
-
----
-
-## 📖 Recommended Reading Order
-
-### **For New Users:**
-1. [`../README.md`](../README.md) - Understand project goals
-2. [`../QUICK_START_734.md`](../QUICK_START_734.md) - Run your first analysis
-3. [`quality_control/05_ENHANCEMENT_VISUAL_SUMMARY.md`](quality_control/05_ENHANCEMENT_VISUAL_SUMMARY.md) - See quality control in action
-
-### **For Researchers (Quality Assurance):**
-1. [`quality_control/00_OVERVIEW.md`](quality_control/00_OVERVIEW.md) - QC documentation overview
-2. [`quality_control/01_RECORDING_AUDIT_CHECKLIST.md`](quality_control/01_RECORDING_AUDIT_CHECKLIST.md) - Apply audit protocol
-3. [`quality_control/02_MASTER_QUALITY_REPORT_REVIEW.md`](quality_control/02_MASTER_QUALITY_REPORT_REVIEW.md) - Implement enhancements
-
-### **For Developers (Implementation):**
-1. [`quality_control/02_MASTER_QUALITY_REPORT_REVIEW.md`](quality_control/02_MASTER_QUALITY_REPORT_REVIEW.md) - Implementation roadmap
-2. [`quality_control/03_JOINT_LEVEL_TRACKING.md`](quality_control/03_JOINT_LEVEL_TRACKING.md) - Technical details
-3. [`quality_control/04_COMPLETE_REPORT_SCHEMA.md`](quality_control/04_COMPLETE_REPORT_SCHEMA.md) - Full schema reference
-
----
-
-## 🤝 Contributing
-
-When adding documentation:
-1. Follow the established structure
-2. Use markdown formatting
-3. Include code examples where applicable
-4. Cross-reference related documents
-5. Update this index
-
----
-
-## 📧 Support
-
-For questions about:
-- **Pipeline usage**: See [`../PIPELINE_USAGE.md`](../PIPELINE_USAGE.md)
-- **Quality control**: See [`quality_control/00_OVERVIEW.md`](quality_control/00_OVERVIEW.md)
-- **Configuration**: See [`../config/`](../config/)
-
----
-
-**Version**: 1.0  
-**Last Updated**: January 2026  
-**Maintained by**: Gaga Mocap Pipeline Team
+**Last Updated:** January 2026

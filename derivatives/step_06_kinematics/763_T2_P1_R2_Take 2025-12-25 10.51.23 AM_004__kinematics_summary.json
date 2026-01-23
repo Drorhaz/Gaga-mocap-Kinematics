@@ -1,0 +1,151 @@
+{
+    "run_id": "763_T2_P1_R2_Take 2025-12-25 10.51.23 AM_004",
+    "overall_status": "FAIL",
+    "metrics": {
+        "angular_velocity": {
+            "max": 1714.3,
+            "limit": 1500.0,
+            "status": false
+        },
+        "angular_accel": {
+            "max": 86593.46,
+            "limit": 50000.0,
+            "status": false
+        },
+        "linear_accel": {
+            "max": 86407.38,
+            "limit": 100000.0,
+            "status": true
+        }
+    },
+    "signal_quality": {
+        "avg_residual_rms": 16.255651,
+        "avg_dominant_freq": 0.005,
+        "max_quat_norm_err": 0.0
+    },
+    "movement_metrics": {
+        "path_length_mm": 35929.2,
+        "intensity_index": 0.114
+    },
+    "pipeline_params": {
+        "sg_window_sec": 0.175,
+        "sg_polyorder": 3,
+        "fs_target": 120.0,
+        "sg_window_frames": 21
+    },
+    "outlier_analysis": {
+        "thresholds": {
+            "angular_velocity": {
+                "WARNING": 800.0,
+                "ALERT": 1200.0,
+                "CRITICAL": 1500.0
+            },
+            "angular_acceleration": {
+                "WARNING": 35000.0,
+                "ALERT": 50000.0,
+                "CRITICAL": 80000.0
+            },
+            "linear_acceleration": {
+                "WARNING": 60000.0,
+                "ALERT": 100000.0,
+                "CRITICAL": 150000.0
+            }
+        },
+        "total_frames": 30535,
+        "counts": {
+            "warning": 1981,
+            "alert": 779,
+            "critical": 25,
+            "total_outliers": 2785
+        },
+        "percentages": {
+            "warning": 6.4876,
+            "alert": 2.5512,
+            "critical": 0.0819,
+            "total_outliers": 9.1207
+        },
+        "consecutive_runs": {
+            "max_consecutive_any_outlier": 133,
+            "max_consecutive_alert_or_critical": 33,
+            "max_consecutive_critical": 5,
+            "alarm_threshold": 5,
+            "alarm_triggered": true,
+            "runs_alert_or_critical": [
+                {
+                    "start_frame": 19344,
+                    "end_frame": 19346,
+                    "length": 3
+                },
+                {
+                    "start_frame": 26571,
+                    "end_frame": 26575,
+                    "length": 5
+                },
+                {
+                    "start_frame": 26616,
+                    "end_frame": 26621,
+                    "length": 6
+                },
+                {
+                    "start_frame": 26633,
+                    "end_frame": 26634,
+                    "length": 2
+                },
+                {
+                    "start_frame": 26665,
+                    "end_frame": 26668,
+                    "length": 4
+                },
+                {
+                    "start_frame": 26768,
+                    "end_frame": 26770,
+                    "length": 3
+                },
+                {
+                    "start_frame": 26871,
+                    "end_frame": 26874,
+                    "length": 4
+                },
+                {
+                    "start_frame": 26948,
+                    "end_frame": 26949,
+                    "length": 2
+                },
+                {
+                    "start_frame": 26957,
+                    "end_frame": 26971,
+                    "length": 15
+                },
+                {
+                    "start_frame": 26973,
+                    "end_frame": 26987,
+                    "length": 15
+                }
+            ]
+        },
+        "per_metric": {
+            "angular_velocity": {
+                "warning_frames": 1449,
+                "alert_frames": 149,
+                "critical_frames": 10
+            },
+            "angular_acceleration": {
+                "warning_frames": 1442,
+                "alert_frames": 684,
+                "critical_frames": 15
+            },
+            "linear_acceleration": {
+                "warning_frames": 73,
+                "alert_frames": 0,
+                "critical_frames": 0
+            }
+        }
+    },
+    "joint_statistics": {},
+    "rom_files": {
+        "json": "763_T2_P1_R2_Take 2025-12-25 10.51.23 AM_004__joint_statistics.json",
+        "parquet": "763_T2_P1_R2_Take 2025-12-25 10.51.23 AM_004__joint_statistics.parquet",
+        "location": "derivatives/step_06_kinematics/",
+        "description": "Per-joint ROM and angular velocity statistics computed from quaternion-derived angles"
+    }
+}

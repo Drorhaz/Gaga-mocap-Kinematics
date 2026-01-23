@@ -81,6 +81,8 @@ PARAMETER_SCHEMA = {
             "filter_params.filter_range_hz": {"type": "list", "section": "S4", "description": "Filter range [min, max] Hz"},
             "filter_params.filter_order": {"type": "int", "section": "S4", "description": "Butterworth filter order"},
             "filter_params.winter_analysis_failed": {"type": "bool", "section": "S4", "description": "Whether Winter analysis failed"},
+            "filter_params.winter_failure_reason": {"type": "str", "section": "S4", "description": "Reason for Winter analysis failure (if any)"},
+            "filter_params.decision_reason": {"type": "str", "section": "S4", "description": "Decision rationale for filter cutoff selection"},
             "filter_params.biomechanical_guardrails.enabled": {"type": "bool", "section": "S4", "description": "Guardrails enabled"},
         }
     },
@@ -143,6 +145,53 @@ SECTION_DESCRIPTIONS = {
 # ============================================================
 # SAFE ACCESS UTILITIES
 # ============================================================
+
+def _frames_to_ranges_str(frames, max_ranges: int = 10) -> str:
+    """
+    Convert list of frame indices to readable range string.
+    e.g., [1,2,3,7,8,10] -> "1-3, 7-8, 10"
+    """
+    if not frames or frames == 'N/A':
+        return 'None'
+    
+    if isinstance(frames, str):
+        return frames
+    
+    try:
+        frames = sorted([int(f) for f in frames])
+    except (TypeError, ValueError):
+        return str(frames)[:100]
+    
+    if not frames:
+        return 'None'
+    
+    ranges = []
+    start = frames[0]
+    end = frames[0]
+    
+    for f in frames[1:]:
+        if f == end + 1:
+            end = f
+        else:
+            if start == end:
+                ranges.append(str(start))
+            else:
+                ranges.append(f"{start}-{end}")
+            start = f
+            end = f
+    
+    # Handle last range
+    if start == end:
+        ranges.append(str(start))
+    else:
+        ranges.append(f"{start}-{end}")
+    
+    # Limit output length
+    if len(ranges) > max_ranges:
+        return f"{', '.join(ranges[:max_ranges])}... (+{len(ranges)-max_ranges} more)"
+    
+    return ', '.join(ranges) if ranges else 'None'
+
 
 def safe_get(d: dict, *keys, default='N/A') -> Any:
     """
@@ -413,8 +462,9 @@ def score_calibration(steps: Dict[str, dict]) -> float:
 
 
 def score_temporal_quality(steps: Dict[str, dict]) -> float:
-    """Score temporal/sampling quality (0-100)."""
+    """Score temporal/sampling quality (0-100) - includes Gate 2 metrics."""
     s01 = steps.get("step_01", {})
+    s02 = steps.get("step_02", {})
     
     score = 100.0
     
@@ -429,6 +479,25 @@ def score_temporal_quality(steps: Dict[str, dict]) -> float:
         score -= 30
     elif duration < 60:
         score -= 10
+    
+    # =================================================================
+    # GATE 2: Sample Time Jitter
+    # =================================================================
+    jitter_ms = safe_float(safe_get_path(s02, "step_02_sample_time_jitter_ms"))
+    if jitter_ms > 0:  # Only penalize if we have jitter data
+        if jitter_ms > 5.0:
+            score -= 25  # Severe jitter
+        elif jitter_ms > 2.0:
+            score -= 15  # High jitter (REVIEW threshold)
+        elif jitter_ms > 1.0:
+            score -= 5   # Moderate jitter
+    
+    # Gate 2: Interpolation fallback rate
+    fallback_rate = safe_float(safe_get_path(s02, "step_02_fallback_rate_percent"))
+    if fallback_rate > 15:
+        score -= 20  # REJECT threshold
+    elif fallback_rate > 5:
+        score -= 10  # REVIEW threshold
     
     return max(0, score)
 
@@ -511,7 +580,7 @@ def score_reference(steps: Dict[str, dict]) -> float:
 
 
 def score_biomechanics(steps: Dict[str, dict]) -> float:
-    """Score biomechanical plausibility (0-100)."""
+    """Score biomechanical plausibility (0-100) - includes Gate 5 burst metrics."""
     s06 = steps.get("step_06", {})
     
     score = 100.0
@@ -530,17 +599,55 @@ def score_biomechanics(steps: Dict[str, dict]) -> float:
     elif outlier_pct > 1:
         score -= 5
     
-    # Max angular velocity check
-    max_ang_vel = safe_float(safe_get_path(s06, "metrics.angular_velocity.max"))
+    # =================================================================
+    # GATE 5: Use CLEAN velocity (artifacts excluded) for fairer scoring
+    # =================================================================
+    # Prefer clean max velocity if available (excludes artifact spikes)
+    clean_max_vel = safe_float(safe_get_path(s06, "clean_statistics.clean_statistics.max_deg_s"))
+    raw_max_vel = safe_float(safe_get_path(s06, "metrics.angular_velocity.max"))
+    
+    # Use clean if available, else fall back to raw
+    max_ang_vel = clean_max_vel if clean_max_vel > 0 else raw_max_vel
     limit = safe_float(safe_get_path(s06, "metrics.angular_velocity.limit"), default=1500)
+    
     if max_ang_vel > limit:
         score -= 20
+    
+    # Gate 5: Burst classification decision
+    burst_decision = safe_get_path(s06, "step_06_burst_decision.overall_status")
+    if burst_decision == "REJECT":
+        score -= 30
+    elif burst_decision == "REVIEW":
+        score -= 10
+    elif burst_decision == "ACCEPT_HIGH_INTENSITY":
+        score += 0  # No penalty - legitimate Gaga movement
+    
+    # Gate 5: Artifact rate penalty
+    artifact_rate = safe_float(safe_get_path(s06, "step_06_burst_analysis.frame_statistics.artifact_rate_percent"))
+    if artifact_rate > 1.0:
+        score -= 15  # Too many artifacts
+    elif artifact_rate > 0.5:
+        score -= 5
+    
+    # Gate 5: Data retained after artifact exclusion
+    data_retained = safe_float(safe_get_path(s06, "clean_statistics.comparison.data_retained_percent"))
+    if data_retained > 0 and data_retained < 95:
+        score -= 20  # Lost too much data to artifacts
+    elif data_retained > 0 and data_retained < 99:
+        score -= 5
+    
+    # Overall gate status
+    gate_status = safe_get_path(s06, "overall_gate_status")
+    if gate_status == "REJECT":
+        score -= 25
+    elif gate_status == "REVIEW":
+        score -= 5
     
     return max(0, score)
 
 
 def score_signal_quality(steps: Dict[str, dict]) -> float:
-    """Score signal quality (0-100)."""
+    """Score signal quality (0-100) - includes Gate 4 ISB compliance."""
     s06 = steps.get("step_06", {})
     
     score = 100.0
@@ -559,6 +666,19 @@ def score_signal_quality(steps: Dict[str, dict]) -> float:
     if quat_err > 0.01:
         score -= 20
     elif quat_err > 0.001:
+        score -= 10
+    
+    # =================================================================
+    # GATE 4: ISB Compliance & Mathematical Stability
+    # =================================================================
+    isb_compliant = safe_get_path(s06, "step_06_isb_compliant")
+    if isb_compliant == False:  # Explicit False check
+        score -= 15  # Not using ISB-compliant Euler sequences
+    
+    math_status = safe_get_path(s06, "step_06_math_status")
+    if math_status == "REJECT":
+        score -= 30  # Quaternion math instability
+    elif math_status == "REVIEW":
         score -= 10
     
     return max(0, score)
@@ -667,6 +787,8 @@ def build_quality_row(run_id: str, steps: Dict[str, dict]) -> Dict[str, Any]:
         "Filter_Cutoff_Hz": round(safe_float(safe_get_path(s04, "filter_params.filter_cutoff_hz")), 1),
         "Filter_Method": safe_get_path(s04, "filter_params.filter_method"),
         "Winter_Failed": safe_get_path(s04, "filter_params.winter_analysis_failed"),
+        "Winter_Failure_Reason": safe_get_path(s04, "filter_params.winter_failure_reason"),
+        "Filter_Decision_Reason": safe_get_path(s04, "filter_params.decision_reason"),
         
         # Reference
         "Ref_Quality_Score": round(safe_float(safe_get_path(s05, "window_metadata.ref_quality_score")), 3),
@@ -685,6 +807,57 @@ def build_quality_row(run_id: str, steps: Dict[str, dict]) -> Dict[str, Any]:
         "Quat_Norm_Err": round(safe_float(safe_get_path(s06, "signal_quality.max_quat_norm_err")), 6),
         "Path_Length_mm": round(safe_float(safe_get_path(s06, "movement_metrics.path_length_mm")), 1),
         "Intensity_Index": round(safe_float(safe_get_path(s06, "movement_metrics.intensity_index")), 3),
+        
+        # =================================================================
+        # GATE 2: Temporal Quality (New Fields)
+        # =================================================================
+        "Sample_Jitter_ms": round(safe_float(safe_get_path(s02, "step_02_sample_time_jitter_ms")), 4),
+        "Jitter_Status": safe_get_path(s02, "step_02_jitter_status"),
+        "Fallback_Count": safe_int(safe_get_path(s02, "step_02_fallback_count")),
+        "Fallback_Rate_%": round(safe_float(safe_get_path(s02, "step_02_fallback_rate_percent")), 4),
+        "Max_Gap_Frames": safe_int(safe_get_path(s02, "step_02_max_gap_frames")),
+        "Interpolation_Status": safe_get_path(s02, "step_02_interpolation_status"),
+        
+        # =================================================================
+        # GATE 3: Filtering (Enhanced Fields)
+        # =================================================================
+        "Filter_Search_Range": safe_get_path(s04, "filter_params.filter_range_hz"),
+        "Region_Cutoffs": safe_get_path(s04, "filter_params.region_cutoffs"),
+        
+        # =================================================================
+        # GATE 4: ISB Compliance (New Fields)
+        # =================================================================
+        "ISB_Compliant": safe_get_path(s06, "step_06_isb_compliant"),
+        "Math_Status": safe_get_path(s06, "step_06_math_status"),
+        "Math_Decision_Reason": safe_get_path(s06, "step_06_math_decision_reason"),
+        
+        # =================================================================
+        # GATE 5: Burst Classification (New Fields)
+        # =================================================================
+        "Burst_Artifact_Count": safe_int(safe_get_path(s06, "step_06_burst_analysis.classification.artifact_count")),
+        "Burst_Count": safe_int(safe_get_path(s06, "step_06_burst_analysis.classification.burst_count")),
+        "Burst_Flow_Count": safe_int(safe_get_path(s06, "step_06_burst_analysis.classification.flow_count")),
+        "Burst_Total_Events": safe_int(safe_get_path(s06, "step_06_burst_analysis.classification.total_events")),
+        "Artifact_Rate_%": round(safe_float(safe_get_path(s06, "step_06_burst_analysis.frame_statistics.artifact_rate_percent")), 4),
+        "Max_Consecutive_Frames": safe_int(safe_get_path(s06, "step_06_burst_analysis.timing.max_consecutive_frames")),
+        "Mean_Event_Duration_ms": round(safe_float(safe_get_path(s06, "step_06_burst_analysis.timing.mean_event_duration_ms")), 2),
+        "Burst_Decision": safe_get_path(s06, "step_06_burst_decision.overall_status"),
+        "Burst_Decision_Reason": safe_get_path(s06, "step_06_burst_decision.primary_reason"),
+        "Data_Usable": safe_get_path(s06, "step_06_data_validity.usable"),
+        "Excluded_Frames": safe_int(safe_get_path(s06, "step_06_data_validity.excluded_frame_count")),
+        
+        # Suspicious Frame Ranges (for quick reference)
+        "Artifact_Frame_Ranges": _frames_to_ranges_str(safe_get_path(s06, "step_06_frames_to_exclude", default=[])),
+        "Burst_Frame_Ranges": _frames_to_ranges_str(safe_get_path(s06, "step_06_frames_to_review", default=[])),
+        
+        # Clean Statistics (after artifact exclusion)
+        "Clean_Max_Vel_deg_s": round(safe_float(safe_get_path(s06, "clean_statistics.clean_statistics.max_deg_s")), 2),
+        "Clean_Mean_Vel_deg_s": round(safe_float(safe_get_path(s06, "clean_statistics.clean_statistics.mean_deg_s")), 2),
+        "Max_Vel_Reduction_%": round(safe_float(safe_get_path(s06, "clean_statistics.comparison.max_reduction_percent")), 2),
+        "Data_Retained_%": round(safe_float(safe_get_path(s06, "clean_statistics.comparison.data_retained_percent")), 4),
+        
+        # Overall Gate Status
+        "Overall_Gate_Status": safe_get_path(s06, "overall_gate_status"),
         
         # Scores
         "Quality_Score": overall_score,

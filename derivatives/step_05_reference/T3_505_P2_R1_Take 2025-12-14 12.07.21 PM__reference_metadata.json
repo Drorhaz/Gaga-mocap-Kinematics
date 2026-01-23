@@ -1,0 +1,35 @@
+{
+    "validation_mode_identity": true,
+    "vpose_validation_frame": "anatomical",
+    "euler_order_used": "XYZ",
+    "vpose_mult_order": "left",
+    "identity_tolerance_deg": 5.0,
+    "shoulder_joints": [
+        "LeftShoulder",
+        "RightShoulder"
+    ],
+    "vpose_correction_applied": true,
+    "fs": 120.0,
+    "window_duration_sec": 1.0,
+    "quat_order": "xyzw",
+    "hemisphere_alignment_applied": true,
+    "v_pose_correction_applied": true,
+    "v_pose_correction_quat_xyzw": [
+        0.5676946360799121,
+        1.7198483623226367e-17,
+        -0.16310762048765123,
+        0.8069192675261587
+    ],
+    "time_window": [
+        4.0,
+        5.0
+    ],
+    "ref_quality_score": 0.5737424202604957,
+    "confidence_level": "MEDIUM",
+    "ref_is_fallback": false,
+    "detection_method": "auto_stable_window",
+    "mean_motion": 0.09052631797357025,
+    "max_motion": 0.4377909053054623,
+    "variance_score": 85.25151594790087,
+    "variance_threshold": 100.0
+}
