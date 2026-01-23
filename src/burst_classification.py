@@ -54,9 +54,11 @@ STATUS_NAMES = {
 }
 
 # Event density thresholds (for data quality assessment)
+# TASK 2: Updated "Outlier Policy" - >5% outliers triggers REVIEW
 EVENT_DENSITY_THRESHOLDS = {
+    'outlier_rate_review': 5.0,       # >5% total outlier frames = REVIEW (NEW)
     'artifact_rate_warn': 0.1,        # >0.1% frames as artifact = REVIEW
-    'artifact_rate_reject': 1.0,      # >1.0% frames as artifact = REJECT
+    'artifact_rate_reject': 1.0,      # >1.0% frames as artifact = REJECT (Overall_Status change)
     'burst_events_per_min_warn': 5,   # >5 burst events/min = REVIEW
     'burst_events_per_min_reject': 15,# >15 burst events/min = REJECT
     'total_events_warn': 20,          # >20 total events = REVIEW
@@ -315,6 +317,10 @@ def _assess_event_density(events: List[Dict], n_frames: int, fs: float) -> Dict:
     """
     Assess if event frequency indicates data quality issue.
     
+    TASK 2: Updated "Outlier Policy" Implementation
+    - >5% total outlier frames = REVIEW
+    - >1% artifact rate = Overall_Status FAIL
+    
     Logic: Isolated events = OK (real movement), Many events = Problem (noise/sensor issue)
     """
     duration_sec = n_frames / fs if fs > 0 else 0
@@ -327,6 +333,8 @@ def _assess_event_density(events: List[Dict], n_frames: int, fs: float) -> Dict:
             'metrics': {
                 'artifact_frames': 0,
                 'artifact_rate_percent': 0.0,
+                'outlier_frames_total': 0,
+                'outlier_rate_percent': 0.0,
                 'burst_events': 0,
                 'burst_events_per_min': 0.0,
                 'total_events': 0,
@@ -335,16 +343,25 @@ def _assess_event_density(events: List[Dict], n_frames: int, fs: float) -> Dict:
         }
     
     artifact_frames = sum(e['duration_frames'] for e in events if e['tier'] == STATUS_ARTIFACT)
+    burst_frames = sum(e['duration_frames'] for e in events if e['tier'] == STATUS_BURST)
+    flow_frames = sum(e['duration_frames'] for e in events if e['tier'] == STATUS_FLOW)
+    outlier_frames_total = artifact_frames + burst_frames + flow_frames
+    
     burst_events = sum(1 for e in events if e['tier'] == STATUS_BURST)
     
     artifact_rate = 100 * artifact_frames / n_frames if n_frames > 0 else 0
+    outlier_rate = 100 * outlier_frames_total / n_frames if n_frames > 0 else 0
     burst_per_min = burst_events / duration_min if duration_min > 0 else 0
     
     flags = []
     
-    # Check artifact rate
+    # TASK 2: Check total outlier percentage (NEW)
+    if outlier_rate > EVENT_DENSITY_THRESHOLDS['outlier_rate_review']:
+        flags.append(('REVIEW', f'Total outlier rate {outlier_rate:.2f}% > 5% threshold'))
+    
+    # Check artifact rate - >1% triggers FAIL in Overall_Status
     if artifact_rate > EVENT_DENSITY_THRESHOLDS['artifact_rate_reject']:
-        flags.append(('REJECT', f'Artifact rate {artifact_rate:.2f}% > 1% threshold'))
+        flags.append(('REJECT', f'Artifact rate {artifact_rate:.2f}% > 1% threshold (High Artifact Rate)'))
     elif artifact_rate > EVENT_DENSITY_THRESHOLDS['artifact_rate_warn']:
         flags.append(('REVIEW', f'Artifact rate {artifact_rate:.2f}% > 0.1% threshold'))
     
@@ -377,6 +394,8 @@ def _assess_event_density(events: List[Dict], n_frames: int, fs: float) -> Dict:
         'metrics': {
             'artifact_frames': artifact_frames,
             'artifact_rate_percent': round(artifact_rate, 4),
+            'outlier_frames_total': outlier_frames_total,
+            'outlier_rate_percent': round(outlier_rate, 4),
             'burst_events': burst_events,
             'burst_events_per_min': round(burst_per_min, 2),
             'total_events': len(events),
@@ -386,19 +405,31 @@ def _assess_event_density(events: List[Dict], n_frames: int, fs: float) -> Dict:
 
 
 def _determine_overall_decision(events: List[Dict], density: Dict) -> Dict:
-    """Determine overall decision based on events and density."""
+    """
+    Determine overall decision based on events and density.
+    
+    TASK 2: Updated decision logic - Overall_Status FAIL on High Artifact Rate (>1%)
+    """
     if not events:
         return {
             'overall_status': 'PASS',
             'primary_reason': 'No high-velocity events detected'
         }
     
-    # Density-based rejection takes priority
+    # TASK 2: Density-based rejection takes priority - High Artifact Rate = FAIL
     if density['status'] == 'REJECT':
-        return {
-            'overall_status': 'REJECT',
-            'primary_reason': density['reason']
-        }
+        # Check if it's specifically artifact rate that caused rejection
+        artifact_rate = density['metrics'].get('artifact_rate_percent', 0)
+        if artifact_rate > EVENT_DENSITY_THRESHOLDS['artifact_rate_reject']:
+            return {
+                'overall_status': 'FAIL',
+                'primary_reason': f'High Artifact Rate: {artifact_rate:.2f}% > 1.0% threshold (Overall_Status = FAIL)'
+            }
+        else:
+            return {
+                'overall_status': 'REJECT',
+                'primary_reason': density['reason']
+            }
     
     # Check for artifacts
     artifact_count = sum(1 for e in events if e['tier'] == STATUS_ARTIFACT)

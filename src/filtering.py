@@ -162,7 +162,8 @@ def winter_residual_analysis(signal: np.ndarray,
                 'knee_point_found': False,
                 'rms_values': [],
                 'test_frequencies': [],
-                'residual_rms_final': 0.0
+                'residual_rms_final': 0.0,
+                'failure_reason': f"Signal has no variation (std={np.std(x):.2e}), cannot perform residual analysis"  # GATE 3
             }
         return float(fmax)
     
@@ -276,7 +277,33 @@ def winter_residual_analysis(signal: np.ndarray,
     cutoff_idx = np.argmin(np.abs(cutoffs - optimal_fc))
     residual_rms_final = float(rms_values[cutoff_idx])
     
+    # Calculate residual slope at the knee-point to assess convergence quality
+    # Slope indicates how quickly the residual is decreasing at the selected cutoff
+    if cutoff_idx > 0 and cutoff_idx < len(rms_values) - 1:
+        # Use central difference for slope estimate
+        residual_slope = (rms_values[cutoff_idx + 1] - rms_values[cutoff_idx - 1]) / 2.0
+    elif cutoff_idx == 0:
+        # Forward difference at boundary
+        residual_slope = rms_values[1] - rms_values[0]
+    else:
+        # Backward difference at boundary
+        residual_slope = rms_values[-1] - rms_values[-2]
+    
+    residual_slope = float(residual_slope)
+    
     if return_details:
+        # GATE 3 FIX: Generate human-readable failure reason for audit transparency
+        failure_reason_detail = None
+        if not knee_point_found:
+            if curve_is_flat:
+                failure_reason_detail = f"RMS curve is flat (range={rms_range_ratio:.1%}), no clear knee-point detected in {fmin}-{fmax}Hz range"
+            elif optimal_fc >= fmax - 1:
+                failure_reason_detail = f"Cutoff at fmax ({optimal_fc}Hz), residual slope did not plateau in {fmin}-{fmax}Hz range"
+            else:
+                failure_reason_detail = f"No knee-point found, using {method_used} fallback cutoff"
+        elif guardrail_applied and guardrail_delta >= 2.0:
+            failure_reason_detail = f"Biomechanical guardrail override: +{guardrail_delta:.1f}Hz from {raw_optimal_fc:.1f}Hz to {optimal_fc:.1f}Hz"
+        
         return {
             'cutoff_hz': float(optimal_fc),
             'raw_cutoff_hz': float(raw_optimal_fc),
@@ -287,10 +314,12 @@ def winter_residual_analysis(signal: np.ndarray,
             'rms_values': rms_values.tolist(),
             'test_frequencies': cutoffs.tolist(),
             'residual_rms_final': residual_rms_final,
+            'residual_slope': residual_slope,  # NEW: Slope at knee-point for convergence quality
             'rms_range_ratio': float(rms_range_ratio),
             'curve_is_flat': curve_is_flat,
             'search_range_hz': [fmin, fmax],
-            'body_region': body_region
+            'body_region': body_region,
+            'failure_reason': failure_reason_detail  # GATE 3: Detailed failure reason
         }
     
     return float(optimal_fc)
@@ -483,6 +512,7 @@ def apply_winter_filter(df: pd.DataFrame,
         # Apply Winter analysis per region
         df_out = df.copy()
         region_cutoffs = {}
+        region_analysis_details = {}  # GATE 3: Store detailed analysis per region
         
         for region, cols in region_columns.items():
             if not cols or region == 'unknown':
@@ -496,15 +526,24 @@ def apply_winter_filter(df: pd.DataFrame,
             col_scores = {col: np.nanstd(np.diff(df[col].values)) for col in cols}
             rep_col_region = max(col_scores, key=col_scores.get)
             
-            # Run Winter analysis
-            fc_region = winter_residual_analysis(
+            # GATE 3 FIX: Run Winter analysis with detailed return for transparency
+            analysis_details = winter_residual_analysis(
                 df[rep_col_region].values, fs, fmax=fmax,
-                min_cutoff=min_cutoff_region, body_region=region
+                min_cutoff=min_cutoff_region, body_region=region,
+                return_details=True
             )
+            
+            fc_region = analysis_details['cutoff_hz']
             
             # Clamp to region-specific range
             fc_region = np.clip(fc_region, min_cutoff_region, max_cutoff_region)
             region_cutoffs[region] = fc_region
+            region_analysis_details[region] = {
+                'cutoff_hz': fc_region,
+                'knee_point_found': analysis_details['knee_point_found'],
+                'failure_reason': analysis_details.get('failure_reason'),
+                'rep_col': rep_col_region
+            }
             
             logger.info(f"  {region}: cutoff={fc_region:.1f} Hz (range: {min_cutoff_region}-{max_cutoff_region} Hz, "
                        f"rep_col={rep_col_region.split('__')[0]})")
@@ -524,17 +563,43 @@ def apply_winter_filter(df: pd.DataFrame,
                 df_out[col] = filtfilt(b_unknown, a_unknown, df[col].values.astype(float))
             region_cutoffs['unknown'] = median_cutoff
         
+        # GATE 3 FIX: Compute weighted average cutoff for quick summary in audit reports
+        # Exclude 'unknown' region from average calculation
+        valid_cutoffs = [v for k, v in region_cutoffs.items() if k != 'unknown']
+        weighted_avg_cutoff = float(np.mean(valid_cutoffs)) if valid_cutoffs else 0.0
+        
+        # GATE 3 FIX: Determine if Winter analysis succeeded for per-region filtering
+        # Success = all regions found a knee-point (not at fmax)
+        failed_regions = []
+        for region, details in region_analysis_details.items():
+            if not details['knee_point_found'] or details['failure_reason']:
+                failed_regions.append(f"{region} ({details['cutoff_hz']:.1f}Hz)")
+        
+        all_regions_succeeded = len(failed_regions) == 0
+        
+        if failed_regions:
+            winter_failure_reason = f"Winter analysis failed for {len(failed_regions)} region(s): {', '.join(failed_regions)}"
+        else:
+            winter_failure_reason = None
+        
         # Update metadata for per-region filtering
         metadata = {
             "filtering_mode": "per_region",
             "region_cutoffs": region_cutoffs,
             "marker_regions": marker_regions,
+            "region_analysis_details": region_analysis_details,  # GATE 3: Include detailed analysis
             "n_regions": len([r for r in region_cutoffs.keys() if r != 'unknown']),
             "cutoff_range": (min(region_cutoffs.values()), max(region_cutoffs.values())),
             "fmax": fmax,
+            "fmin": 1,
             "pos_cols_valid": pos_cols_valid,
             "pos_cols_excluded": excluded_cols,
-            "total_pos_cols": len(pos_cols)
+            "total_pos_cols": len(pos_cols),
+            # GATE 3: Add fields for audit report compatibility
+            "filter_cutoff_hz": weighted_avg_cutoff,
+            "filter_range_hz": [1, fmax],
+            "winter_analysis_failed": not all_regions_succeeded,
+            "winter_failure_reason": winter_failure_reason
         }
         
         logger.info(f"Per-region filtering complete: {len(region_cutoffs)} regions, "
@@ -581,7 +646,11 @@ def apply_winter_filter(df: pd.DataFrame,
         failure_reason = None
         
         if detailed_analysis:
-            if not detailed_analysis['knee_point_found']:
+            # GATE 3 FIX: Use the detailed failure_reason from analysis if available
+            if detailed_analysis.get('failure_reason'):
+                winter_analysis_failed = True
+                failure_reason = detailed_analysis['failure_reason']
+            elif not detailed_analysis['knee_point_found']:
                 winter_analysis_failed = True
                 failure_reason = f"No knee-point found (RMS curve flat, range={detailed_analysis['rms_range_ratio']:.1%})"
             elif detailed_analysis['guardrail_applied'] and detailed_analysis['guardrail_delta_hz'] >= 2.0:
@@ -590,7 +659,8 @@ def apply_winter_filter(df: pd.DataFrame,
         
         if fc >= fmax - 1:
             winter_analysis_failed = True
-            failure_reason = f"Cutoff at fmax ({fc:.1f}Hz) - data may be pre-smoothed"
+            if not failure_reason:  # Only override if not already set
+                failure_reason = f"Cutoff at fmax ({fc:.1f}Hz) - data may be pre-smoothed"
         
         # Prepare metadata
         metadata = {
@@ -623,6 +693,34 @@ def apply_winter_filter(df: pd.DataFrame,
         if winter_analysis_failed:
             logger.warning(f"WINTER ANALYSIS FAILURE DETECTED: {failure_reason}. "
                           f"Using cutoff={fc:.1f}Hz but flagging as failed for traceability.")
+        
+        # TASK 3: Filter Ceiling + Residual RMS Synergy Check
+        # If filter is at ceiling (16Hz) AND RMS is high (>20mm), flag it
+        if detailed_analysis:
+            residual_rms = detailed_analysis.get('residual_rms_final', 0)
+            residual_slope = detailed_analysis.get('residual_slope', 0)
+            
+            if fc >= 16.0 and residual_rms > 20.0:
+                synergy_warning = (f"High-frequency intensity exceeding filter bounds: "
+                                 f"Cutoff at ceiling ({fc:.1f}Hz) with RMS={residual_rms:.2f}mm > 20mm threshold. "
+                                 f"This suggests movement contains genuine high-frequency content beyond filter capacity.")
+                logger.warning(synergy_warning)
+                
+                # Add to metadata for audit logging
+                metadata['filter_ceiling_warning'] = {
+                    'triggered': True,
+                    'cutoff_hz': fc,
+                    'residual_rms_mm': residual_rms,
+                    'residual_slope': residual_slope,
+                    'decision_reason': synergy_warning
+                }
+            else:
+                metadata['filter_ceiling_warning'] = {
+                    'triggered': False,
+                    'cutoff_hz': fc,
+                    'residual_rms_mm': residual_rms,
+                    'residual_slope': residual_slope
+                }
     
     # Ensure quaternion columns are unchanged (both modes)
     quat_cols = [col for col in df.columns if col.endswith(('__qx', '__qy', '__qz', '__qw'))]

@@ -814,16 +814,16 @@ for run_id, steps in complete_runs.items():
     row["Quality_Score_Method"] = "heuristic_v2_biomechanical"
     
     # === RESEARCH DECISION (ENHANCED) ===
-    if (row["Pipeline_Status"] == "PASS" and 
-        row["Quality_Score"] >= 75 and 
+    # Note: Pipeline_Status is now a processing indicator (e.g., "COMPLETED_STEP_06")
+    # Quality assessment is based on actual metrics, not status string
+    if (row["Quality_Score"] >= 75 and 
         row["Ref_Status"] == "PASS" and 
         safe_float(row["Bone_Stability_CV"]) < 1.5 and
         not row["Winter_Failed"] and                          # NEW
         not row["Unphysiological_Accel"] and                  # NEW
         not row["Unphysiological_Ang_Vel"]):                  # NEW
         row["Research_Decision"] = "ACCEPT"
-    elif (row["Pipeline_Status"] == "PASS" and 
-          row["Quality_Score"] >= 50 and
+    elif (row["Quality_Score"] >= 50 and
           not row["Unphysiological_Accel"] and
           not row["Unphysiological_Ang_Vel"]):
         row["Research_Decision"] = "REVIEW"
