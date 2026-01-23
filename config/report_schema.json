@@ -1,0 +1,377 @@
+{
+  "version": "2.0",
+  "generated": "2026-01-23T02:01:33.226209",
+  "sections": {
+    "S0": "Data Lineage & Provenance",
+    "S1": "R\u00e1cz Calibration Layer",
+    "S2": "Temporal Quality & Sampling",
+    "S3": "Gap & Interpolation Transparency",
+    "S4": "Winter's Residual Validation",
+    "S5": "Reference Detection & Stability",
+    "S6": "Biomechanics & Outlier Analysis",
+    "S7": "Signal-to-Noise Quantification",
+    "S8": "Decision Matrix"
+  },
+  "steps": {
+    "step_01": {
+      "file_suffix": "__step01_loader_report.json",
+      "description": "Raw data loader report - initial parsing results",
+      "parameters": {
+        "identity.run_id": {
+          "type": "str",
+          "section": "S0",
+          "description": "Unique recording identifier"
+        },
+        "identity.processing_timestamp": {
+          "type": "str",
+          "section": "S0",
+          "description": "When pipeline ran"
+        },
+        "identity.pipeline_version": {
+          "type": "str",
+          "section": "S0",
+          "description": "Pipeline version string"
+        },
+        "identity.csv_source": {
+          "type": "str",
+          "section": "S0",
+          "description": "Path to raw CSV file"
+        },
+        "raw_data_quality.total_frames": {
+          "type": "int",
+          "section": "S2",
+          "description": "Total frames in recording"
+        },
+        "raw_data_quality.missing_data_percent": {
+          "type": "str",
+          "section": "S3",
+          "description": "Percentage of missing data"
+        },
+        "raw_data_quality.sampling_rate_actual": {
+          "type": "float",
+          "section": "S2",
+          "description": "Actual sampling rate (Hz)"
+        },
+        "raw_data_quality.optitrack_mean_error_mm": {
+          "type": "float",
+          "section": "S1",
+          "description": "OptiTrack calibration error (mm)"
+        },
+        "raw_data_quality.optitrack_version": {
+          "type": "str",
+          "section": "S0",
+          "description": "OptiTrack software version"
+        },
+        "calibration.pointer_tip_rms_error_mm": {
+          "type": "float",
+          "section": "S1",
+          "description": "Pointer tip RMS error (mm)"
+        },
+        "calibration.wand_error_mm": {
+          "type": "float",
+          "section": "S1",
+          "description": "Wand calibration error (mm)"
+        },
+        "calibration.export_date": {
+          "type": "str",
+          "section": "S0",
+          "description": "Data export date"
+        },
+        "skeleton_info.segments_found_count": {
+          "type": "int",
+          "section": "S1",
+          "description": "Number of skeleton segments found"
+        },
+        "skeleton_info.segments_missing_count": {
+          "type": "int",
+          "section": "S1",
+          "description": "Number of missing segments"
+        },
+        "duration_sec": {
+          "type": "float",
+          "section": "S2",
+          "description": "Recording duration in seconds"
+        }
+      }
+    },
+    "step_02": {
+      "file_suffix": "__preprocess_summary.json",
+      "description": "Preprocessing summary - gap filling and bone stability",
+      "parameters": {
+        "run_id": {
+          "type": "str",
+          "section": "S0",
+          "description": "Recording identifier"
+        },
+        "raw_missing_percent": {
+          "type": "float",
+          "section": "S3",
+          "description": "Raw missing data percentage"
+        },
+        "post_missing_percent": {
+          "type": "float",
+          "section": "S3",
+          "description": "Missing data after interpolation"
+        },
+        "max_interpolation_gap": {
+          "type": "int",
+          "section": "S3",
+          "description": "Maximum gap frames allowed for interpolation"
+        },
+        "bone_qc_mean_cv": {
+          "type": "float",
+          "section": "S1",
+          "description": "Mean coefficient of variation for bone lengths"
+        },
+        "bone_qc_status": {
+          "type": "str",
+          "section": "S1",
+          "description": "Bone QC status (GOLD/SILVER/BRONZE/FAIL)"
+        },
+        "bone_qc_alerts": {
+          "type": "list",
+          "section": "S1",
+          "description": "List of bones with alerts"
+        },
+        "worst_bone": {
+          "type": "str",
+          "section": "S1",
+          "description": "Bone with highest CV"
+        },
+        "interpolation_method": {
+          "type": "str",
+          "section": "S3",
+          "description": "Global interpolation method used"
+        }
+      }
+    },
+    "step_04": {
+      "file_suffix": "__filtering_summary.json",
+      "description": "Filtering summary - Winter residual analysis",
+      "parameters": {
+        "run_id": {
+          "type": "str",
+          "section": "S0",
+          "description": "Recording identifier"
+        },
+        "identity.timestamp": {
+          "type": "str",
+          "section": "S0",
+          "description": "Filtering timestamp"
+        },
+        "identity.pipeline_version": {
+          "type": "str",
+          "section": "S0",
+          "description": "Pipeline version"
+        },
+        "subject_metadata.mass_kg": {
+          "type": "float",
+          "section": "S0",
+          "description": "Subject mass (kg)"
+        },
+        "subject_metadata.height_cm": {
+          "type": "float",
+          "section": "S0",
+          "description": "Subject height (cm)"
+        },
+        "raw_quality.total_frames": {
+          "type": "int",
+          "section": "S2",
+          "description": "Total frames"
+        },
+        "raw_quality.sampling_rate_actual": {
+          "type": "float",
+          "section": "S2",
+          "description": "Sampling rate (Hz)"
+        },
+        "filter_params.filter_type": {
+          "type": "str",
+          "section": "S4",
+          "description": "Filter type description"
+        },
+        "filter_params.filter_method": {
+          "type": "str",
+          "section": "S4",
+          "description": "Filter method name"
+        },
+        "filter_params.filter_cutoff_hz": {
+          "type": "float",
+          "section": "S4",
+          "description": "Cutoff frequency (Hz)"
+        },
+        "filter_params.filter_range_hz": {
+          "type": "list",
+          "section": "S4",
+          "description": "Filter range [min, max] Hz"
+        },
+        "filter_params.filter_order": {
+          "type": "int",
+          "section": "S4",
+          "description": "Butterworth filter order"
+        },
+        "filter_params.winter_analysis_failed": {
+          "type": "bool",
+          "section": "S4",
+          "description": "Whether Winter analysis failed"
+        },
+        "filter_params.biomechanical_guardrails.enabled": {
+          "type": "bool",
+          "section": "S4",
+          "description": "Guardrails enabled"
+        }
+      }
+    },
+    "step_05": {
+      "file_suffix": "__reference_summary.json",
+      "description": "Reference detection - static pose alignment",
+      "parameters": {
+        "run_id": {
+          "type": "str",
+          "section": "S0",
+          "description": "Recording identifier"
+        },
+        "subject_context.height_cm": {
+          "type": "float",
+          "section": "S0",
+          "description": "Estimated height (cm)"
+        },
+        "subject_context.scaling_factor": {
+          "type": "float",
+          "section": "S0",
+          "description": "Scaling factor applied"
+        },
+        "static_offset_audit.Left.measured_angle_deg": {
+          "type": "float",
+          "section": "S1",
+          "description": "Left shoulder offset (deg)"
+        },
+        "static_offset_audit.Right.measured_angle_deg": {
+          "type": "float",
+          "section": "S1",
+          "description": "Right shoulder offset (deg)"
+        },
+        "window_metadata.start_time_sec": {
+          "type": "float",
+          "section": "S5",
+          "description": "Reference window start (sec)"
+        },
+        "window_metadata.end_time_sec": {
+          "type": "float",
+          "section": "S5",
+          "description": "Reference window end (sec)"
+        },
+        "window_metadata.variance_score": {
+          "type": "float",
+          "section": "S5",
+          "description": "Window stability score"
+        },
+        "window_metadata.ref_quality_score": {
+          "type": "float",
+          "section": "S5",
+          "description": "Reference quality score"
+        },
+        "window_metadata.confidence_level": {
+          "type": "str",
+          "section": "S5",
+          "description": "Confidence level (HIGH/MEDIUM/LOW)"
+        },
+        "window_metadata.detection_method": {
+          "type": "str",
+          "section": "S5",
+          "description": "Detection method used"
+        },
+        "metadata.grade": {
+          "type": "str",
+          "section": "S5",
+          "description": "Reference grade"
+        },
+        "metadata.status": {
+          "type": "str",
+          "section": "S5",
+          "description": "Reference status (LOCKED/PROVISIONAL)"
+        }
+      }
+    },
+    "step_06": {
+      "file_suffix": "__kinematics_summary.json",
+      "description": "Kinematics summary - angular velocities and outliers",
+      "parameters": {
+        "run_id": {
+          "type": "str",
+          "section": "S0",
+          "description": "Recording identifier"
+        },
+        "overall_status": {
+          "type": "str",
+          "section": "S8",
+          "description": "Overall pipeline status (PASS/FAIL)"
+        },
+        "metrics.angular_velocity.max": {
+          "type": "float",
+          "section": "S6",
+          "description": "Max angular velocity (deg/s)"
+        },
+        "metrics.angular_velocity.limit": {
+          "type": "float",
+          "section": "S6",
+          "description": "Angular velocity limit"
+        },
+        "metrics.angular_accel.max": {
+          "type": "float",
+          "section": "S6",
+          "description": "Max angular acceleration (deg/s\u00b2)"
+        },
+        "metrics.linear_accel.max": {
+          "type": "float",
+          "section": "S6",
+          "description": "Max linear acceleration (mm/s\u00b2)"
+        },
+        "signal_quality.avg_residual_rms": {
+          "type": "float",
+          "section": "S7",
+          "description": "Average residual RMS"
+        },
+        "signal_quality.max_quat_norm_err": {
+          "type": "float",
+          "section": "S2",
+          "description": "Max quaternion normalization error"
+        },
+        "movement_metrics.path_length_mm": {
+          "type": "float",
+          "section": "S6",
+          "description": "Total path length (mm)"
+        },
+        "movement_metrics.intensity_index": {
+          "type": "float",
+          "section": "S6",
+          "description": "Movement intensity index"
+        },
+        "outlier_analysis.counts.total_outliers": {
+          "type": "int",
+          "section": "S6",
+          "description": "Total outlier frames"
+        },
+        "outlier_analysis.percentages.total_outliers": {
+          "type": "float",
+          "section": "S6",
+          "description": "Outlier percentage"
+        },
+        "outlier_analysis.consecutive_runs.max_consecutive_any_outlier": {
+          "type": "int",
+          "section": "S6",
+          "description": "Max consecutive outliers"
+        },
+        "pipeline_params.sg_window_sec": {
+          "type": "float",
+          "section": "S6",
+          "description": "Savitzky-Golay window (sec)"
+        },
+        "pipeline_params.fs_target": {
+          "type": "float",
+          "section": "S2",
+          "description": "Target sampling rate"
+        }
+      }
+    }
+  }
+}

@@ -12,30 +12,6 @@
     "worst_bone": "Hips->Spine",
     "interpolation_method": "linear_quaternion_normalized",
     "interpolation_per_joint": {
-        "LeftHandThumb3": {
-            "method": "none_required",
-            "method_category": "pristine",
-            "frames_fixed_percent": 0.0,
-            "frames_fixed_count": 0,
-            "max_gap_frames": 0,
-            "nans_remaining": 0
-        },
-        "RightUpLeg": {
-            "method": "none_required",
-            "method_category": "pristine",
-            "frames_fixed_percent": 0.0,
-            "frames_fixed_count": 0,
-            "max_gap_frames": 0,
-            "nans_remaining": 0
-        },
-        "RightLeg": {
-            "method": "none_required",
-            "method_category": "pristine",
-            "frames_fixed_percent": 0.0,
-            "frames_fixed_count": 0,
-            "max_gap_frames": 0,
-            "nans_remaining": 0
-        },
         "LeftHand": {
             "method": "none_required",
             "method_category": "pristine",
@@ -44,7 +20,7 @@
             "max_gap_frames": 0,
             "nans_remaining": 0
         },
-        "Head": {
+        "LeftToeBase": {
             "method": "none_required",
             "method_category": "pristine",
             "frames_fixed_percent": 0.0,
@@ -52,7 +28,7 @@
             "max_gap_frames": 0,
             "nans_remaining": 0
         },
-        "Spine1": {
+        "LeftLeg": {
             "method": "none_required",
             "method_category": "pristine",
             "frames_fixed_percent": 0.0,
@@ -68,7 +44,7 @@
             "max_gap_frames": 0,
             "nans_remaining": 0
         },
-        "RightShoulder": {
+        "Spine": {
             "method": "none_required",
             "method_category": "pristine",
             "frames_fixed_percent": 0.0,
@@ -77,6 +53,38 @@
             "nans_remaining": 0
         },
         "LeftArm": {
+            "method": "none_required",
+            "method_category": "pristine",
+            "frames_fixed_percent": 0.0,
+            "frames_fixed_count": 0,
+            "max_gap_frames": 0,
+            "nans_remaining": 0
+        },
+        "LeftHandThumb3": {
+            "method": "none_required",
+            "method_category": "pristine",
+            "frames_fixed_percent": 0.0,
+            "frames_fixed_count": 0,
+            "max_gap_frames": 0,
+            "nans_remaining": 0
+        },
+        "LeftShoulder": {
+            "method": "none_required",
+            "method_category": "pristine",
+            "frames_fixed_percent": 0.0,
+            "frames_fixed_count": 0,
+            "max_gap_frames": 0,
+            "nans_remaining": 0
+        },
+        "Head": {
+            "method": "none_required",
+            "method_category": "pristine",
+            "frames_fixed_percent": 0.0,
+            "frames_fixed_count": 0,
+            "max_gap_frames": 0,
+            "nans_remaining": 0
+        },
+        "RightLeg": {
             "method": "none_required",
             "method_category": "pristine",
             "frames_fixed_percent": 0.0,
@@ -108,23 +116,23 @@
             "max_gap_frames": 0,
             "nans_remaining": 0
         },
+        "RightShoulder": {
+            "method": "none_required",
+            "method_category": "pristine",
+            "frames_fixed_percent": 0.0,
+            "frames_fixed_count": 0,
+            "max_gap_frames": 0,
+            "nans_remaining": 0
+        },
+        "LeftHandIndex1": {
+            "method": "none_required",
+            "method_category": "pristine",
+            "frames_fixed_percent": 0.0,
+            "frames_fixed_count": 0,
+            "max_gap_frames": 0,
+            "nans_remaining": 0
+        },
         "Hips": {
-            "method": "none_required",
-            "method_category": "pristine",
-            "frames_fixed_percent": 0.0,
-            "frames_fixed_count": 0,
-            "max_gap_frames": 0,
-            "nans_remaining": 0
-        },
-        "LeftLeg": {
-            "method": "none_required",
-            "method_category": "pristine",
-            "frames_fixed_percent": 0.0,
-            "frames_fixed_count": 0,
-            "max_gap_frames": 0,
-            "nans_remaining": 0
-        },
-        "LeftToeBase": {
             "method": "none_required",
             "method_category": "pristine",
             "frames_fixed_percent": 0.0,
@@ -140,7 +148,7 @@
             "max_gap_frames": 0,
             "nans_remaining": 0
         },
-        "LeftHandIndex3": {
+        "LeftHandThumb2": {
             "method": "none_required",
             "method_category": "pristine",
             "frames_fixed_percent": 0.0,
@@ -148,7 +156,31 @@
             "max_gap_frames": 0,
             "nans_remaining": 0
         },
-        "Spine": {
+        "RightUpLeg": {
+            "method": "none_required",
+            "method_category": "pristine",
+            "frames_fixed_percent": 0.0,
+            "frames_fixed_count": 0,
+            "max_gap_frames": 0,
+            "nans_remaining": 0
+        },
+        "RightFoot": {
+            "method": "none_required",
+            "method_category": "pristine",
+            "frames_fixed_percent": 0.0,
+            "frames_fixed_count": 0,
+            "max_gap_frames": 0,
+            "nans_remaining": 0
+        },
+        "RightHand": {
+            "method": "none_required",
+            "method_category": "pristine",
+            "frames_fixed_percent": 0.0,
+            "frames_fixed_count": 0,
+            "max_gap_frames": 0,
+            "nans_remaining": 0
+        },
+        "Neck": {
             "method": "none_required",
             "method_category": "pristine",
             "frames_fixed_percent": 0.0,
@@ -172,7 +204,7 @@
             "max_gap_frames": 0,
             "nans_remaining": 0
         },
-        "LeftShoulder": {
+        "LeftHandIndex3": {
             "method": "none_required",
             "method_category": "pristine",
             "frames_fixed_percent": 0.0,
@@ -180,23 +212,7 @@
             "max_gap_frames": 0,
             "nans_remaining": 0
         },
-        "LeftHandThumb2": {
-            "method": "none_required",
-            "method_category": "pristine",
-            "frames_fixed_percent": 0.0,
-            "frames_fixed_count": 0,
-            "max_gap_frames": 0,
-            "nans_remaining": 0
-        },
-        "Neck": {
-            "method": "none_required",
-            "method_category": "pristine",
-            "frames_fixed_percent": 0.0,
-            "frames_fixed_count": 0,
-            "max_gap_frames": 0,
-            "nans_remaining": 0
-        },
-        "RightFoot": {
+        "Spine1": {
             "method": "none_required",
             "method_category": "pristine",
             "frames_fixed_percent": 0.0,
@@ -205,22 +221,6 @@
             "nans_remaining": 0
         },
         "LeftFoot": {
-            "method": "none_required",
-            "method_category": "pristine",
-            "frames_fixed_percent": 0.0,
-            "frames_fixed_count": 0,
-            "max_gap_frames": 0,
-            "nans_remaining": 0
-        },
-        "LeftHandIndex1": {
-            "method": "none_required",
-            "method_category": "pristine",
-            "frames_fixed_percent": 0.0,
-            "frames_fixed_count": 0,
-            "max_gap_frames": 0,
-            "nans_remaining": 0
-        },
-        "RightHand": {
             "method": "none_required",
             "method_category": "pristine",
             "frames_fixed_percent": 0.0,

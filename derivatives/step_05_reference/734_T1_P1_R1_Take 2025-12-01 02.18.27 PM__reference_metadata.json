@@ -23,5 +23,13 @@
     "time_window": [
         0.0,
         1.0
-    ]
+    ],
+    "ref_quality_score": 0.8200735344158784,
+    "confidence_level": "HIGH",
+    "ref_is_fallback": false,
+    "detection_method": "auto_stable_window",
+    "mean_motion": 0.053361064936440515,
+    "max_motion": 0.2977623299552761,
+    "variance_score": 35.98529311682432,
+    "variance_threshold": 100.0
 }

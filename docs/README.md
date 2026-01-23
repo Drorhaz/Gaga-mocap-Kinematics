@@ -17,6 +17,9 @@ Complete quality assurance framework including audit protocols, reporting standa
 - [`../PIPELINE_USAGE.md`](../PIPELINE_USAGE.md) - Pipeline usage guide
 - [`../README_PIPELINE.md`](../README_PIPELINE.md) - Pipeline architecture
 
+### **Biomechanical Metrics Documentation**
+- [`ROM_DOCUMENTATION.md`](ROM_DOCUMENTATION.md) - **Complete ROM documentation** (merged comprehensive guide including quick start, implementation, literature analysis, and method comparison)
+
 ### **Configuration Documentation**
 - [`../config/`](../config/) - Configuration files and schemas
 - [`../config/biomechanical_config.json`](../config/biomechanical_config.json) - Biomechanical thresholds
@@ -55,6 +58,15 @@ Complete quality assurance framework including audit protocols, reporting standa
 #### **Process Batch Files**
 → [`../JSON_BATCH_SYSTEM_SUMMARY.md`](../JSON_BATCH_SYSTEM_SUMMARY.md)
 
+#### **Access ROM (Range of Motion) Data**
+→ [`ROM_DOCUMENTATION.md`](ROM_DOCUMENTATION.md) - See "Quick Start" section
+
+#### **Understand ROM Computation**
+→ [`ROM_DOCUMENTATION.md`](ROM_DOCUMENTATION.md) - See "Computation Method" section
+
+#### **Compare ROM Method to Literature**
+→ [`ROM_DOCUMENTATION.md`](ROM_DOCUMENTATION.md) - See "Literature Analysis" and "Method Comparison" sections
+
 ---
 
 ## 📊 Documentation Status
@@ -65,6 +77,7 @@ Complete quality assurance framework including audit protocols, reporting standa
 | Pipeline Usage Guide | ✅ Complete | Jan 2026 |
 | Audit Checklist | ✅ Complete | Jan 2026 |
 | Report Enhancement | ✅ Complete | Jan 2026 |
+| ROM Documentation | ✅ Complete | Jan 2026 |
 | Implementation Guide | 🚧 In Progress | - |
 | API Reference | ⏳ Planned | - |
 
@@ -77,6 +90,10 @@ Complete quality assurance framework including audit protocols, reporting standa
 - ✅ Established audit protocol with literature-based standards
 - ✅ Defined enhanced Master Quality Report schema (22 → 75+ fields)
 - ✅ Documented joint-level tracking rationale and implementation
+- ✅ **NEW: ROM data now saved in Parquet format with full documentation**
+  - Added ROM export to Notebook 06
+  - Created comprehensive ROM documentation
+  - Documented file paths in audit trail
 
 ### December 2025
 - ✅ Pipeline architecture documentation
