@@ -161,6 +161,39 @@ SECTION_DESCRIPTIONS = {
 # SAFE ACCESS UTILITIES
 # ============================================================
 
+def _extract_validation_status(s04: dict) -> Dict[str, str]:
+    """Extract Winter validation status per region (for fixed cutoff mode)."""
+    details = safe_get_path(s04, "filter_params.region_analysis_details", default={})
+    if not isinstance(details, dict):
+        return {}
+    return {region: info.get('validation_status', 'N/A') for region, info in details.items()}
+
+
+def _extract_rms_knee_per_region(s04: dict) -> Dict[str, float]:
+    """Extract Winter RMS knee (strict_knee) per region - where RMS curve flattens."""
+    details = safe_get_path(s04, "filter_params.region_analysis_details", default={})
+    if not isinstance(details, dict):
+        return {}
+    result = {}
+    for region, info in details.items():
+        # Try winter_strict_knee_hz first, then winter_suggested_hz as fallback
+        knee = info.get('winter_strict_knee_hz') or info.get('winter_suggested_hz', 'N/A')
+        result[region] = knee
+    return result
+
+
+def _extract_diminishing_per_region(s04: dict) -> Dict[str, float]:
+    """Extract Winter diminishing returns frequency per region - where biggest RMS drop happens."""
+    details = safe_get_path(s04, "filter_params.region_analysis_details", default={})
+    if not isinstance(details, dict):
+        return {}
+    result = {}
+    for region, info in details.items():
+        diminishing = info.get('winter_diminishing_hz', 'N/A')
+        result[region] = diminishing
+    return result
+
+
 def _frames_to_ranges_str(frames, max_ranges: int = 10) -> str:
     """
     Convert list of frame indices to readable range string.
@@ -1039,14 +1072,8 @@ def build_quality_row(run_id: str, steps: Dict[str, dict]) -> Dict[str, Any]:
         "Resample_Interp_Positions": safe_get_path(s03, "interpolation_methods.positions"),
         "Resample_Interp_Rotations": safe_get_path(s03, "interpolation_methods.rotations"),
         
-        # Filtering
-        "Filter_Cutoff_Hz": round(safe_float(safe_get_path(s04, "filter_params.filter_cutoff_hz")), 1),
-        "Filter_Method": safe_get_path(s04, "filter_params.filter_method"),
-        "Winter_Failed": safe_get_path(s04, "filter_params.winter_analysis_failed"),
-        "Winter_Failure_Reason": safe_get_path(s04, "filter_params.winter_failure_reason"),
-        "Filter_Decision_Reason": safe_get_path(s04, "filter_params.decision_reason"),
-        "Residual_RMS_mm": round(safe_float(safe_get_path(s04, "filter_params.residual_rms_mm")), 3),
-        "Residual_Slope": round(safe_float(safe_get_path(s04, "filter_params.residual_slope")), 6),
+        # Filtering (Essential fields only)
+        "Residual_RMS_mm": round(safe_float(safe_get_path(s04, "filter_params.residual_rms_mm")), 2),
         
         # Reference
         "Ref_Quality_Score": round(safe_float(safe_get_path(s05, "window_metadata.ref_quality_score")), 3),
@@ -1080,10 +1107,23 @@ def build_quality_row(run_id: str, steps: Dict[str, dict]) -> Dict[str, Any]:
         "Interpolation_Status": safe_get_path(s02, "step_02_interpolation_status"),
         
         # =================================================================
-        # GATE 3: Filtering (Enhanced Fields)
+        # GATE 3: Filtering (Per-Region Analysis)
         # =================================================================
-        "Filter_Search_Range": safe_get_path(s04, "filter_params.filter_range_hz"),
-        "Region_Cutoffs": safe_get_path(s04, "filter_params.region_cutoffs"),
+        "Filtering_Mode": safe_get_path(s04, "filter_params.filtering_mode"),  # e.g., "per_region_fixed"
+        "Region_Cutoffs_Applied": safe_get_path(s04, "filter_params.region_cutoffs"),  # Applied cutoffs per region
+        "RMS_Knee_Per_Region": _extract_rms_knee_per_region(s04),  # Winter strict_knee per region
+        "Diminishing_Per_Region": _extract_diminishing_per_region(s04),  # Winter diminishing returns per region
+        "Region_Validation_Status": _extract_validation_status(s04),  # VALID/AGGRESSIVE per region
+        
+        # =================================================================
+        # TRUE RAW SNR (Capture Quality - from raw data frequency analysis)
+        # =================================================================
+        "Raw_SNR_Mean_dB": round(safe_float(safe_get_path(s04, "snr_analysis.mean_snr_db")), 1),
+        "Raw_SNR_Min_dB": round(safe_float(safe_get_path(s04, "snr_analysis.min_snr_db")), 1),
+        "Raw_SNR_Max_dB": round(safe_float(safe_get_path(s04, "snr_analysis.max_snr_db")), 1),
+        "Raw_SNR_Status": safe_get_path(s04, "snr_analysis.overall_status"),
+        "Raw_SNR_Joints_Excellent": safe_int(safe_get_path(s04, "snr_analysis.joints_excellent")),
+        "Raw_SNR_Failed_Joints": safe_get_path(s04, "snr_analysis.failed_joints"),
         
         # =================================================================
         # GATE 4: ISB Compliance (New Fields)

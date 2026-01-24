@@ -90,6 +90,63 @@ def compute_snr_from_residuals(signal_raw, signal_filtered, method='rms'):
     return float(snr_db)
 
 
+def compute_true_raw_snr(signal_raw, fs, signal_band=(0.5, 10), noise_band=(15, 50)):
+    """
+    Compute TRUE SNR from raw data only (no filtering required).
+    
+    This measures the inherent quality of the captured data by comparing
+    power in the movement frequency band vs high-frequency noise band.
+    
+    Parameters:
+    -----------
+    signal_raw : np.ndarray
+        Raw signal (before any filtering)
+    fs : float
+        Sampling frequency (Hz)
+    signal_band : tuple
+        Frequency band for human movement signal (Hz). Default 0.5-10 Hz
+        covers voluntary human movement per Winter (2009).
+    noise_band : tuple
+        Frequency band for noise estimation (Hz). Default 15-50 Hz
+        is above voluntary movement but below Nyquist for 120 Hz capture.
+        
+    Returns:
+    --------
+    dict : SNR results with signal/noise power breakdown
+    """
+    # Remove NaN values
+    valid_mask = ~np.isnan(signal_raw)
+    signal_raw = signal_raw[valid_mask]
+    
+    if len(signal_raw) < 100:
+        return {'snr_db': np.nan, 'signal_power': np.nan, 'noise_power': np.nan}
+    
+    # Compute PSD using Welch's method on RAW data
+    f, psd = sp_signal.welch(signal_raw, fs=fs, nperseg=min(512, len(signal_raw)//4))
+    
+    # Integrate power in signal band (movement frequencies from RAW)
+    signal_mask = (f >= signal_band[0]) & (f <= signal_band[1])
+    signal_power = np.trapz(psd[signal_mask], f[signal_mask]) if signal_mask.any() else 0
+    
+    # Integrate power in noise band (high frequencies from RAW)
+    noise_mask = (f >= noise_band[0]) & (f <= noise_band[1])
+    noise_power = np.trapz(psd[noise_mask], f[noise_mask]) if noise_mask.any() else 0
+    
+    # Compute SNR
+    if noise_power < 1e-12:
+        snr_db = 100.0  # Essentially no noise
+    else:
+        snr_db = 10 * np.log10(signal_power / noise_power)
+    
+    return {
+        'snr_db': float(snr_db),
+        'signal_power': float(signal_power),
+        'noise_power': float(noise_power),
+        'signal_band_hz': signal_band,
+        'noise_band_hz': noise_band
+    }
+
+
 def compute_snr_psd(signal_raw, signal_filtered, fs, signal_band=(1, 15), noise_band=(20, 50)):
     """
     Compute SNR using power spectral density analysis.
@@ -207,7 +264,7 @@ def assess_snr_quality(snr_db):
         }
 
 
-def compute_per_joint_snr(df_raw, df_filtered, joint_names, fs=120.0, method='rms'):
+def compute_per_joint_snr(df_raw, df_filtered, joint_names, fs=120.0, method='true_raw'):
     """
     Compute SNR for all joints in a DataFrame.
     
@@ -216,13 +273,15 @@ def compute_per_joint_snr(df_raw, df_filtered, joint_names, fs=120.0, method='rm
     df_raw : pd.DataFrame
         Raw (unfiltered) position data
     df_filtered : pd.DataFrame
-        Filtered position data
+        Filtered position data (only needed for 'rms' and 'psd' methods)
     joint_names : list
         List of joint names
     fs : float
         Sampling frequency (Hz)
     method : str
-        'rms' or 'psd'
+        'true_raw' (recommended) - SNR from raw data frequency analysis
+        'rms' - filtering effectiveness (signal vs residual)
+        'psd' - hybrid method (filtered signal vs raw noise)
         
     Returns:
     --------
@@ -234,13 +293,24 @@ def compute_per_joint_snr(df_raw, df_filtered, joint_names, fs=120.0, method='rm
         # Get position columns (3D position)
         pos_cols = [f'{joint}__px', f'{joint}__py', f'{joint}__pz']
         
-        if not all(col in df_raw.columns and col in df_filtered.columns for col in pos_cols):
-            continue
+        # For true_raw, only need raw data
+        if method == 'true_raw':
+            if not all(col in df_raw.columns for col in pos_cols):
+                continue
+        else:
+            if not all(col in df_raw.columns and col in df_filtered.columns for col in pos_cols):
+                continue
         
         # Compute SNR for each axis
         axis_snrs = []
         for col in pos_cols:
-            if method == 'psd':
+            if method == 'true_raw':
+                snr_result = compute_true_raw_snr(
+                    df_raw[col].values,
+                    fs=fs
+                )
+                axis_snrs.append(snr_result['snr_db'])
+            elif method == 'psd':
                 snr_result = compute_snr_psd(
                     df_raw[col].values,
                     df_filtered[col].values,

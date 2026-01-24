@@ -32,41 +32,54 @@ except ImportError:
 
 
 # =============================================================================
-# GATE 3: PER-REGION BODY DEFINITIONS (Expanded for Gaga High-Intensity)
+# GATE 3: PER-REGION BODY DEFINITIONS (Fixed Cutoffs for Research Reproducibility)
 # =============================================================================
-# Cutoff ranges expanded to [1, 16] Hz to preserve high-frequency Gaga movement
-# while maintaining per-region biomechanical appropriateness.
+# Fixed per-region cutoffs based on biomechanical literature (Winter, 2009; Robertson, 2014)
+# Rationale: Distal segments move faster than proximal; dance/athletic movements need
+# higher cutoffs than walking gait. Fixed values ensure reproducibility across sessions.
+#
+# Literature support:
+#   - Walking: 6 Hz (Winter 2009)
+#   - Running: 6-12 Hz (Robertson 2014)
+#   - Athletic/Dance: 8-15 Hz (sports biomechanics consensus)
+#   - Hand manipulation: up to 20 Hz (upper extremity studies)
 
 BODY_REGIONS = {
     'trunk': {
         'patterns': ['Pelvis', 'Spine', 'Torso', 'Hips', 'Abdomen', 'Chest', 'Back'],
-        'cutoff_range': (6, 10),      # Expanded from (6, 8) for Gaga trunk dynamics
-        'rationale': 'Core movements - expanded upper limit for Gaga explosive trunk'
+        'fixed_cutoff': 6,            # Conservative: 6 Hz for core stability (Winter 2009 gait standard)
+        'cutoff_range': (4, 10),      # Range for validation only
+        'rationale': 'Core movements - 6 Hz based on gait literature, conservative for trunk stability'
     },
     'head': {
         'patterns': ['Head', 'Neck'],
-        'cutoff_range': (7, 12),      # Expanded from (7, 9) for head whips
-        'rationale': 'Head dynamics - allows faster head movements in Gaga'
+        'fixed_cutoff': 8,            # Moderate: 8 Hz for head dynamics
+        'cutoff_range': (6, 12),      # Range for validation only
+        'rationale': 'Head dynamics - 8 Hz preserves head movements while reducing noise'
     },
     'upper_proximal': {
         'patterns': ['Shoulder', 'Clavicle', 'Scapula', 'UpperArm', 'Arm'],
-        'cutoff_range': (8, 14),      # Expanded from (8, 10) for shoulder explosions
-        'rationale': 'Shoulder/upper arm - explosive Gaga arm movements'
+        'fixed_cutoff': 8,            # Moderate: 8 Hz for shoulder/arm
+        'cutoff_range': (6, 12),      # Range for validation only
+        'rationale': 'Shoulder/upper arm - 8 Hz preserves arm swings and reaches'
     },
     'upper_distal': {
         'patterns': ['Elbow', 'Forearm', 'ForeArm', 'Wrist', 'Hand', 'Finger', 'Thumb', 'Index', 'Middle', 'Ring', 'Pinky'],
-        'cutoff_range': (10, 16),     # Expanded from (10, 12) for hand flicks
-        'rationale': 'Hands/fingers - fastest articulation, hand flicks'
+        'fixed_cutoff': 10,           # Higher: 10 Hz for fast hand/finger movements
+        'cutoff_range': (8, 14),      # Range for validation only
+        'rationale': 'Hands/fingers - 10 Hz preserves hand flicks and finger articulation'
     },
     'lower_proximal': {
         'patterns': ['Thigh', 'UpLeg', 'UpperLeg', 'Knee'],
-        'cutoff_range': (8, 14),      # Expanded from (8, 10) for knee pops
-        'rationale': 'Upper leg - explosive leg swings and knee pops'
+        'fixed_cutoff': 8,            # Moderate: 8 Hz for leg dynamics
+        'cutoff_range': (6, 12),      # Range for validation only
+        'rationale': 'Upper leg - 8 Hz preserves leg swings and knee movements'
     },
     'lower_distal': {
         'patterns': ['Ankle', 'Leg', 'LowerLeg', 'Foot', 'Toe', 'ToeBase', 'Heel'],
-        'cutoff_range': (10, 16),     # Expanded from (9, 11) for foot strikes
-        'rationale': 'Lower leg/foot - ground impacts and toe articulation'
+        'fixed_cutoff': 10,           # Higher: 10 Hz for foot strikes and toe movements
+        'cutoff_range': (8, 14),      # Range for validation only
+        'rationale': 'Lower leg/foot - 10 Hz preserves foot strikes and toe articulation'
     }
 }
 
@@ -106,7 +119,8 @@ def winter_residual_analysis(signal: np.ndarray,
                        fmax: int = 16,
                        min_cutoff: Optional[float] = None,
                        body_region: str = "general",
-                       return_details: bool = False) -> Union[float, Dict]:
+                       return_details: bool = False,
+                       validation_mode: bool = False) -> Union[float, Dict]:
     """
     Perform Winter residual analysis to determine optimal low-pass cutoff frequency.
     
@@ -124,6 +138,7 @@ def winter_residual_analysis(signal: np.ndarray,
                    Winter result will be clamped to this minimum with logging
         body_region: Body region for biomechanical context ("trunk", "distal", "general")
         return_details: If True, return dict with full analysis details instead of just cutoff
+        validation_mode: If True, return raw Winter result without weighted compromise (for validation)
         
     Returns:
         If return_details=False: Optimal cutoff frequency (Hz)
@@ -224,10 +239,65 @@ def winter_residual_analysis(signal: np.ndarray,
             candidates.append((diminishing_cutoff, "diminishing_returns"))
             knee_point_found = True
     
-    # Choose the lowest cutoff among all candidates (prefer conservative filtering)
+    # Choose cutoff from candidates
     if candidates:
         candidates.sort(key=lambda x: x[0])  # Sort by cutoff frequency (lowest first)
-        optimal_fc, method_used = candidates[0]
+        
+        if validation_mode:
+            # VALIDATION MODE: Return the strict_knee (where RMS flattens) - most meaningful for validation
+            # This tells us "Winter says you need at least X Hz to capture useful signal"
+            # Also capture diminishing_returns for reference (where biggest RMS drop happens)
+            strict_knee = next((c for c in candidates if c[1] == "strict_knee"), None)
+            relaxed_knee = next((c for c in candidates if c[1] == "relaxed_knee"), None)
+            diminishing = next((c for c in candidates if c[1] == "diminishing_returns"), None)
+            
+            # Store both values for reporting
+            # Note: diminishing_returns has max(4, ...) floor in the candidate generation
+            # Get the raw best_drop_idx value for true diminishing_returns
+            raw_diminishing_hz = float(cutoffs[best_drop_idx]) if 'best_drop_idx' in dir() else None
+            
+            # Prefer strict_knee for validation (where RMS actually stabilizes)
+            if strict_knee:
+                optimal_fc, method_used = strict_knee
+                method_used = f"validation_strict_knee"
+            elif relaxed_knee:
+                optimal_fc, method_used = relaxed_knee
+                method_used = f"validation_relaxed_knee"
+            else:
+                optimal_fc, method_used = candidates[0]
+                method_used = f"validation_raw_{method_used}"
+        else:
+            # DATA-DRIVEN MODE: Use weighted compromise when needed
+            # Get region configuration for biomechanical minimum
+            region_config = BODY_REGIONS.get(body_region, {'cutoff_range': (8, 14)})
+            min_cutoff_region = region_config['cutoff_range'][0]
+            
+            # Find the diminishing_returns and strict_knee candidates
+            diminishing_candidate = next((c for c in candidates if c[1] == "diminishing_returns"), None)
+            strict_knee_candidate = next((c for c in candidates if c[1] == "strict_knee"), None)
+            relaxed_knee_candidate = next((c for c in candidates if c[1] == "relaxed_knee"), None)
+            
+            # Use higher knee candidate if available (prefer strict over relaxed)
+            higher_knee_candidate = strict_knee_candidate or relaxed_knee_candidate
+            
+            # OPTION B: Weighted compromise when diminishing_returns is below minimum
+            # and a higher knee-point exists
+            if (diminishing_candidate and higher_knee_candidate and 
+                diminishing_candidate[0] < min_cutoff_region and
+                higher_knee_candidate[0] > diminishing_candidate[0]):
+                
+                # Weighted average: 30% diminishing_returns + 70% strict_knee
+                # This preserves more high-frequency content for Gaga dance
+                weighted_cutoff = (diminishing_candidate[0] * 0.3) + (higher_knee_candidate[0] * 0.7)
+                optimal_fc = round(weighted_cutoff, 1)
+                method_used = f"weighted_compromise({diminishing_candidate[0]:.1f}*0.3+{higher_knee_candidate[0]:.1f}*0.7)"
+                
+                logger.info(f"WEIGHTED COMPROMISE for {body_region}: diminishing_returns={diminishing_candidate[0]:.1f}Hz "
+                           f"is below min={min_cutoff_region}Hz, strict_knee={higher_knee_candidate[0]:.1f}Hz. "
+                           f"Using weighted average: {optimal_fc:.1f}Hz")
+            else:
+                # Original behavior: pick the lowest candidate
+                optimal_fc, method_used = candidates[0]
     else:
         # NO KNEE POINT FOUND - Gate 3: Use region-specific fallback
         # Get region's upper cutoff limit as fallback (not fmax/2)
@@ -304,6 +374,13 @@ def winter_residual_analysis(signal: np.ndarray,
         elif guardrail_applied and guardrail_delta >= 2.0:
             failure_reason_detail = f"Biomechanical guardrail override: +{guardrail_delta:.1f}Hz from {raw_optimal_fc:.1f}Hz to {optimal_fc:.1f}Hz"
         
+        # Extract all candidate values for detailed reporting
+        strict_knee_hz = next((c[0] for c in candidates if c[1] == "strict_knee"), None) if candidates else None
+        relaxed_knee_hz = next((c[0] for c in candidates if c[1] == "relaxed_knee"), None) if candidates else None
+        diminishing_returns_hz = next((c[0] for c in candidates if c[1] == "diminishing_returns"), None) if candidates else None
+        # Get raw diminishing_returns (before max(4, ...) floor)
+        raw_diminishing_hz = float(cutoffs[best_drop_idx]) if 'best_drop_idx' in dir() and best_drop_idx < len(cutoffs) else None
+        
         return {
             'cutoff_hz': float(optimal_fc),
             'raw_cutoff_hz': float(raw_optimal_fc),
@@ -319,7 +396,12 @@ def winter_residual_analysis(signal: np.ndarray,
             'curve_is_flat': curve_is_flat,
             'search_range_hz': [fmin, fmax],
             'body_region': body_region,
-            'failure_reason': failure_reason_detail  # GATE 3: Detailed failure reason
+            'failure_reason': failure_reason_detail,  # GATE 3: Detailed failure reason
+            # Winter analysis breakdown for audit report
+            'strict_knee_hz': float(strict_knee_hz) if strict_knee_hz else None,
+            'relaxed_knee_hz': float(relaxed_knee_hz) if relaxed_knee_hz else None,
+            'diminishing_returns_hz': float(diminishing_returns_hz) if diminishing_returns_hz else None,
+            'raw_diminishing_hz': float(raw_diminishing_hz) if raw_diminishing_hz else None
         }
     
     return float(optimal_fc)
@@ -486,10 +568,12 @@ def apply_winter_filter(df: pd.DataFrame,
             logger.info(f"Multi-signal Winter analysis: median cutoff = {fc:.1f} Hz")
             logger.info(f"Individual cutoffs: {[f'{c:.1f}' for c in cutoffs]}")
     
-    # PER-REGION FILTERING (NEW FEATURE)
+    # PER-REGION FILTERING WITH FIXED CUTOFFS (Literature-Based)
+    # Reference: Winter (2009), Robertson (2014) - Fixed cutoffs for research reproducibility
     if per_region_filtering:
-        logger.info("=== PER-REGION FILTERING ENABLED ===")
-        logger.info("Classifying markers by body region and applying region-specific cutoffs...")
+        logger.info("=== PER-REGION FILTERING WITH FIXED CUTOFFS ===")
+        logger.info("Using literature-based fixed cutoffs per body region (Winter 2009, Robertson 2014)")
+        logger.info("Winter analysis runs as VALIDATION only - not for cutoff selection")
         
         # Classify all markers by region
         marker_regions = {}
@@ -509,44 +593,63 @@ def apply_winter_filter(df: pd.DataFrame,
             if cols:
                 logger.info(f"  {region}: {len(cols)} markers")
         
-        # Apply Winter analysis per region
+        # Apply FIXED cutoffs per region with Winter validation
         df_out = df.copy()
         region_cutoffs = {}
-        region_analysis_details = {}  # GATE 3: Store detailed analysis per region
+        region_analysis_details = {}  # Store Winter validation results
         
         for region, cols in region_columns.items():
             if not cols or region == 'unknown':
                 continue
             
-            # Get region configuration
-            region_config = BODY_REGIONS.get(region, {'cutoff_range': (8, 12), 'rationale': 'default'})
+            # Get region configuration with FIXED cutoff
+            region_config = BODY_REGIONS.get(region, {'fixed_cutoff': 10, 'cutoff_range': (8, 12), 'rationale': 'default'})
+            fc_region = region_config.get('fixed_cutoff', 10)  # Use fixed cutoff
             min_cutoff_region, max_cutoff_region = region_config['cutoff_range']
             
-            # Select representative column for this region (most dynamic)
+            # Select representative column for this region (most dynamic) - for validation
             col_scores = {col: np.nanstd(np.diff(df[col].values)) for col in cols}
             rep_col_region = max(col_scores, key=col_scores.get)
             
-            # GATE 3 FIX: Run Winter analysis with detailed return for transparency
-            analysis_details = winter_residual_analysis(
+            # Run Winter analysis as VALIDATION (not for cutoff selection)
+            # validation_mode=True skips weighted compromise to get raw knee-point
+            validation_details = winter_residual_analysis(
                 df[rep_col_region].values, fs, fmax=fmax,
-                min_cutoff=min_cutoff_region, body_region=region,
-                return_details=True
+                min_cutoff=None,  # No guardrail - we want to see raw Winter result
+                body_region=region,
+                return_details=True,
+                validation_mode=True  # Get raw knee-point, no weighted compromise
             )
             
-            fc_region = analysis_details['cutoff_hz']
+            # Check if fixed cutoff is appropriate
+            # VALID = fixed cutoff >= Winter suggested (we preserve at least as much signal)
+            # AGGRESSIVE = fixed cutoff < Winter suggested (we filter more than Winter recommends)
+            winter_suggested = validation_details.get('raw_cutoff_hz', validation_details.get('cutoff_hz', 0))
+            if fc_region >= winter_suggested:
+                validation_status = "VALID"  # Fixed preserves more signal than Winter's minimum
+            else:
+                validation_status = "AGGRESSIVE"  # Fixed removes signal Winter thinks is valid
             
-            # Clamp to region-specific range
-            fc_region = np.clip(fc_region, min_cutoff_region, max_cutoff_region)
             region_cutoffs[region] = fc_region
             region_analysis_details[region] = {
                 'cutoff_hz': fc_region,
-                'knee_point_found': analysis_details['knee_point_found'],
-                'failure_reason': analysis_details.get('failure_reason'),
-                'rep_col': rep_col_region
+                'cutoff_method': 'fixed_winter_validated',
+                'winter_strict_knee_hz': validation_details.get('strict_knee_hz'),  # Where RMS flattens
+                'winter_diminishing_hz': validation_details.get('raw_diminishing_hz'),  # Where biggest drop happens
+                'winter_suggested_hz': winter_suggested,  # The chosen validation value (strict_knee)
+                'validation_status': validation_status,
+                'knee_point_found': validation_details.get('knee_point_found'),
+                'method_used': validation_details.get('method_used'),
+                'rms_range_ratio': validation_details.get('rms_range_ratio'),
+                'curve_is_flat': validation_details.get('curve_is_flat'),
+                'rep_col': rep_col_region,
+                'rationale': region_config.get('rationale', 'N/A'),
+                'residual_rms_mm': validation_details.get('residual_rms_final', 0)  # RMS at the applied cutoff
             }
             
-            logger.info(f"  {region}: cutoff={fc_region:.1f} Hz (range: {min_cutoff_region}-{max_cutoff_region} Hz, "
-                       f"rep_col={rep_col_region.split('__')[0]})")
+            strict_knee = validation_details.get('strict_knee_hz', 'N/A')
+            diminishing = validation_details.get('raw_diminishing_hz', 'N/A')
+            logger.info(f"  {region}: FIXED={fc_region:.0f} Hz | Winter RMS knee: {strict_knee} Hz, diminishing: {diminishing} Hz | {validation_status}")
             
             # Design and apply filter for this region
             b_region, a_region = butter(N=2, Wn=fc_region/(0.5*fs), btype='low')
@@ -563,31 +666,36 @@ def apply_winter_filter(df: pd.DataFrame,
                 df_out[col] = filtfilt(b_unknown, a_unknown, df[col].values.astype(float))
             region_cutoffs['unknown'] = median_cutoff
         
-        # GATE 3 FIX: Compute weighted average cutoff for quick summary in audit reports
-        # Exclude 'unknown' region from average calculation
+        # Compute statistics for audit reports
         valid_cutoffs = [v for k, v in region_cutoffs.items() if k != 'unknown']
         weighted_avg_cutoff = float(np.mean(valid_cutoffs)) if valid_cutoffs else 0.0
         
-        # GATE 3 FIX: Determine if Winter analysis succeeded for per-region filtering
-        # Success = all regions found a knee-point (not at fmax)
-        failed_regions = []
+        # Check Winter validation status for all regions
+        aggressive_regions = []
         for region, details in region_analysis_details.items():
-            if not details['knee_point_found'] or details['failure_reason']:
-                failed_regions.append(f"{region} ({details['cutoff_hz']:.1f}Hz)")
+            if details.get('validation_status') == 'AGGRESSIVE':
+                winter_hz = details.get('winter_suggested_hz', 0)
+                fixed_hz = details.get('cutoff_hz', 0)
+                aggressive_regions.append(f"{region} (fixed={fixed_hz}Hz < winter={winter_hz:.1f}Hz)")
         
-        all_regions_succeeded = len(failed_regions) == 0
-        
-        if failed_regions:
-            winter_failure_reason = f"Winter analysis failed for {len(failed_regions)} region(s): {', '.join(failed_regions)}"
+        # Winter validation summary (informational only - not a failure)
+        if aggressive_regions:
+            winter_validation_note = f"Fixed cutoffs are AGGRESSIVE for {len(aggressive_regions)} region(s): {', '.join(aggressive_regions)}. This filters more than Winter suggests - some signal may be removed."
         else:
-            winter_failure_reason = None
+            winter_validation_note = "All fixed cutoffs validated by Winter analysis (fixed >= Winter suggested)"
         
-        # Update metadata for per-region filtering
+        # Compute aggregate residual RMS (mean across all regions)
+        all_region_rms = [details.get('residual_rms_mm', 0) for details in region_analysis_details.values()]
+        mean_residual_rms = float(np.mean(all_region_rms)) if all_region_rms else 0.0
+        
+        # Update metadata for per-region filtering with FIXED cutoffs
         metadata = {
-            "filtering_mode": "per_region",
+            "filtering_mode": "per_region_fixed",
+            "cutoff_method": "fixed_literature_based",
+            "literature_reference": "Winter (2009), Robertson (2014)",
             "region_cutoffs": region_cutoffs,
             "marker_regions": marker_regions,
-            "region_analysis_details": region_analysis_details,  # GATE 3: Include detailed analysis
+            "region_analysis_details": region_analysis_details,
             "n_regions": len([r for r in region_cutoffs.keys() if r != 'unknown']),
             "cutoff_range": (min(region_cutoffs.values()), max(region_cutoffs.values())),
             "fmax": fmax,
@@ -595,15 +703,20 @@ def apply_winter_filter(df: pd.DataFrame,
             "pos_cols_valid": pos_cols_valid,
             "pos_cols_excluded": excluded_cols,
             "total_pos_cols": len(pos_cols),
-            # GATE 3: Add fields for audit report compatibility
+            # Audit report compatibility
             "filter_cutoff_hz": weighted_avg_cutoff,
             "filter_range_hz": [1, fmax],
-            "winter_analysis_failed": not all_regions_succeeded,
-            "winter_failure_reason": winter_failure_reason
+            "residual_rms_mm": mean_residual_rms,  # Aggregate residual RMS across all regions
+            # Fixed cutoff approach - Winter is validation only, not failure indicator
+            "winter_analysis_failed": False,  # Fixed cutoffs don't "fail" - they're intentional
+            "winter_failure_reason": None,
+            "winter_validation_note": winter_validation_note,
+            "decision_reason": f"Fixed per-region cutoffs based on biomechanical literature. Trunk: 6Hz, Head/Proximal: 8Hz, Distal: 10Hz (Winter 2009, Robertson 2014)"
         }
         
-        logger.info(f"Per-region filtering complete: {len(region_cutoffs)} regions, "
-                   f"cutoff range: {metadata['cutoff_range'][0]:.1f}-{metadata['cutoff_range'][1]:.1f} Hz")
+        logger.info(f"Per-region FIXED filtering complete: {len(region_cutoffs)} regions")
+        logger.info(f"  Cutoffs applied: {region_cutoffs}")
+        logger.info(f"  Validation: {winter_validation_note}")
     
     else:
         # SINGLE GLOBAL CUTOFF (ORIGINAL BEHAVIOR)
