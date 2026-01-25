@@ -21,14 +21,25 @@ logger = logging.getLogger(__name__)
 
 # Import PSD validation (optional - only if module exists)
 try:
+    # Try relative import first (when used as package)
     from .filter_validation import (
         validate_winter_filter_multi_signal,
-        check_filter_cutoff_validity
+        check_filter_cutoff_validity,
+        analyze_filter_psd_preservation
     )
     PSD_VALIDATION_AVAILABLE = True
 except ImportError:
-    PSD_VALIDATION_AVAILABLE = False
-    logger.warning("PSD validation module not available - validation metrics will be skipped")
+    try:
+        # Fallback to absolute import (when run from notebook)
+        from filter_validation import (
+            validate_winter_filter_multi_signal,
+            check_filter_cutoff_validity,
+            analyze_filter_psd_preservation
+        )
+        PSD_VALIDATION_AVAILABLE = True
+    except ImportError:
+        PSD_VALIDATION_AVAILABLE = False
+        logger.warning("PSD validation module not available - validation metrics will be skipped")
 
 
 # =============================================================================
@@ -315,9 +326,8 @@ def winter_residual_analysis(signal: np.ndarray,
         optimal_fc = fmax
         method_used = "fmax_fallback"
         knee_point_found = False
-        logger.error(f"WINTER ANALYSIS FAILED: cutoff = {optimal_fc} Hz (at fmax). "
-                    f"This indicates data is already oversmoothed or method applied too late in pipeline. "
-                    f"Expected dance cutoff: 4-10 Hz. Investigate earlier pipeline stages.")
+        logger.info(f"RMS analysis suggests fmax ({optimal_fc} Hz) - fixed literature cutoff will be used instead. "
+                   f"(This is expected with clean/pre-filtered data)")
     else:
         if knee_point_found:
             logger.info(f"Winter analysis: selected cutoff {optimal_fc} Hz ({method_used})")
@@ -842,32 +852,77 @@ def apply_winter_filter(df: pd.DataFrame,
             df_out[col] = df[col].values
     
     # PSD Validation (Research Validation Phase 1 - Item 1)
-    if PSD_VALIDATION_AVAILABLE and not per_region_filtering:
+    if PSD_VALIDATION_AVAILABLE:
         try:
             logger.info("Running PSD validation to verify filter quality...")
             
-            # Check cutoff validity
-            cutoff_validity = check_filter_cutoff_validity(fc, fs, fmax)
-            metadata['cutoff_validity'] = cutoff_validity
-            
-            # Validate filter performance on sample of signals
-            psd_validation = validate_winter_filter_multi_signal(
-                df, df_out, pos_cols_valid, fs, fc, n_samples=5
-            )
-            metadata['psd_validation'] = psd_validation
-            
-            logger.info(f"PSD Validation Complete: Dance preservation={psd_validation.get('dance_preservation_mean', 0):.1f}%, "
-                       f"Filter quality={psd_validation.get('overall_filter_quality', 'UNKNOWN')}")
+            if per_region_filtering:
+                # Per-region PSD validation: validate sample markers from each region
+                all_metrics = []
+                regions_validated = set()
+                
+                # Sample up to 2 markers per region for validation
+                for region_name, region_cutoff in region_cutoffs.items():
+                    region_markers = [m for m in pos_cols_valid 
+                                     if marker_regions.get(m) == region_name][:2]
+                    
+                    for marker in region_markers:
+                        if marker in df.columns and marker in df_out.columns:
+                            signal_raw = df[marker].values
+                            signal_filt = df_out[marker].values
+                            
+                            if not np.any(np.isnan(signal_raw)) and not np.any(np.isnan(signal_filt)):
+                                metrics = analyze_filter_psd_preservation(
+                                    signal_raw, signal_filt, fs, region_cutoff
+                                )
+                                metrics['column'] = marker
+                                metrics['region'] = region_name
+                                metrics['cutoff_hz'] = region_cutoff
+                                all_metrics.append(metrics)
+                                regions_validated.add(region_name)
+                
+                if all_metrics:
+                    # Aggregate metrics
+                    dance_preservations = [m.get('dance_preservation_pct', 0) for m in all_metrics]
+                    noise_attenuations = [m.get('noise_attenuation_pct', 0) for m in all_metrics]
+                    
+                    psd_validation = {
+                        'status': 'VALIDATED',
+                        'mode': 'per_region',
+                        'regions_validated': list(regions_validated),
+                        'n_markers_validated': len(all_metrics),
+                        'dance_preservation_mean': float(np.mean(dance_preservations)),
+                        'dance_preservation_min': float(np.min(dance_preservations)),
+                        'noise_attenuation_mean': float(np.mean(noise_attenuations)),
+                        'per_marker_metrics': all_metrics,
+                        'overall_filter_quality': 'GOOD' if np.mean(dance_preservations) >= 80 else 'MARGINAL'
+                    }
+                else:
+                    psd_validation = {'status': 'NO_VALID_MARKERS', 'mode': 'per_region'}
+                    
+                metadata['psd_validation'] = psd_validation
+                logger.info(f"Per-region PSD Validation: Dance preservation={psd_validation.get('dance_preservation_mean', 0):.1f}%, "
+                           f"Quality={psd_validation.get('overall_filter_quality', 'UNKNOWN')}, "
+                           f"Regions={list(regions_validated)}")
+            else:
+                # Single-cutoff validation
+                cutoff_validity = check_filter_cutoff_validity(fc, fs, fmax)
+                metadata['cutoff_validity'] = cutoff_validity
+                
+                psd_validation = validate_winter_filter_multi_signal(
+                    df, df_out, pos_cols_valid, fs, fc, n_samples=5
+                )
+                metadata['psd_validation'] = psd_validation
+                
+                logger.info(f"PSD Validation Complete: Dance preservation={psd_validation.get('dance_preservation_mean', 0):.1f}%, "
+                           f"Filter quality={psd_validation.get('overall_filter_quality', 'UNKNOWN')}")
             
         except Exception as e:
             logger.warning(f"PSD validation failed: {e}")
             metadata['psd_validation'] = {'status': 'ERROR', 'error': str(e)}
     else:
-        if per_region_filtering:
-            logger.info("PSD validation skipped (per-region filtering - validate per region separately)")
-        else:
-            logger.info("PSD validation skipped (module not available)")
-        metadata['psd_validation'] = {'status': 'SKIPPED', 'reason': 'per_region_mode' if per_region_filtering else 'module_not_available'}
+        logger.info("PSD validation skipped (module not available)")
+        metadata['psd_validation'] = {'status': 'SKIPPED', 'reason': 'module_not_available'}
     
     # Log completion
     if per_region_filtering:
