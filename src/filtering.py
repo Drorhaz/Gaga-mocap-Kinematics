@@ -417,6 +417,656 @@ def winter_residual_analysis(signal: np.ndarray,
     return float(optimal_fc)
 
 
+# =============================================================================
+# 3-STAGE SIGNAL CLEANING PIPELINE
+# =============================================================================
+# Generic "Gatekeeper" Architecture for handling artifacts and noise separately
+# Stage 1: Artifact Detector (Z-Score + Velocity) - identifies tracking spikes
+# Stage 2: Hampel Filter (Sliding Window Median) - removes outliers
+# Stage 3: Adaptive Low-Pass (Winter's Residual Method) - per-joint optimal cutoff
+
+
+def detect_artifact_gaps(signal: np.ndarray, 
+                        fs: float,
+                        velocity_limit: float = 1800.0,
+                        zscore_threshold: float = 5.0) -> np.ndarray:
+    """
+    Stage 1: Artifact Detector using Z-Score + Velocity thresholds.
+    
+    Detects tracking artifacts (spikes) by identifying frames where:
+    1. Velocity change exceeds physiological limit
+    2. Velocity change is >N standard deviations from session mean
+    
+    This identifies "tracking artifacts" without blurring legitimate movement.
+    
+    Args:
+        signal: 1D position signal
+        fs: Sampling frequency (Hz)
+        velocity_limit: Physiological velocity limit in signal units per second
+                       (e.g., 5000 mm/s for position, 1800 deg/s for angles)
+        zscore_threshold: Z-score threshold for outlier detection (default: 5.0)
+        
+    Returns:
+        Boolean mask where True indicates artifact gaps (should be interpolated)
+    """
+    if len(signal) < 3:
+        return np.zeros(len(signal), dtype=bool)
+    
+    # Compute velocity (change per frame, then convert to per-second)
+    dt = 1.0 / fs
+    velocity = np.diff(signal) / dt  # Units: signal_units/s
+    
+    # Compute session statistics
+    velocity_mean = np.nanmean(velocity)
+    velocity_std = np.nanstd(velocity)
+    
+    # Avoid division by zero
+    if velocity_std < 1e-10:
+        velocity_std = 1e-10
+    
+    # Compute z-scores
+    z_scores = np.abs((velocity - velocity_mean) / velocity_std)
+    
+    # Detect artifacts: either exceeds physiological limit OR >N std devs
+    artifact_mask = np.zeros(len(signal), dtype=bool)
+    
+    # Check velocity threshold (convert signal units to deg/s equivalent if needed)
+    # For position data, we use absolute velocity magnitude
+    abs_velocity = np.abs(velocity)
+    
+    # Mark frames where velocity spike detected
+    velocity_spikes = abs_velocity > velocity_limit
+    zscore_spikes = z_scores > zscore_threshold
+    
+    # Combine: artifact if EITHER condition is met
+    spike_mask = velocity_spikes | zscore_spikes
+    
+    # Mark the frame AFTER the spike (where the gap occurs)
+    artifact_mask[1:][spike_mask] = True
+    
+    # Also mark the frame WITH the spike
+    artifact_mask[:-1][spike_mask] = True
+    
+    return artifact_mask
+
+
+def apply_hampel_filter(signal: np.ndarray, 
+                       window_size: int = 5,
+                       n_sigma: float = 3.0) -> Tuple[np.ndarray, np.ndarray]:
+    """
+    Stage 2: Hampel Filter - Universal outlier "snipper" using sliding window median.
+    
+    Slides a window across data and replaces any point that is an outlier compared to
+    its immediate neighbors with the median of that window.
+    
+    Generic Rule: A window of 5-7 frames is usually enough to "snip" MoCap artifacts
+    while preserving 5-10 Hz dance dynamics.
+    
+    Args:
+        signal: 1D signal array
+        window_size: Size of sliding window (default: 5, recommended: 5-7)
+        n_sigma: Number of standard deviations for outlier threshold (default: 3.0)
+        
+    Returns:
+        Tuple of (filtered_signal, outlier_mask)
+        - filtered_signal: Signal with outliers replaced by window median
+        - outlier_mask: Boolean mask indicating which points were replaced
+    """
+    if len(signal) < window_size:
+        return signal.copy(), np.zeros(len(signal), dtype=bool)
+    
+    filtered = signal.copy().astype(float)
+    outlier_mask = np.zeros(len(signal), dtype=bool)
+    
+    half_window = window_size // 2
+    
+    for i in range(len(signal)):
+        # Define window boundaries
+        start_idx = max(0, i - half_window)
+        end_idx = min(len(signal), i + half_window + 1)
+        
+        window_data = signal[start_idx:end_idx]
+        
+        # Skip if all NaN
+        if np.all(np.isnan(window_data)):
+            continue
+        
+        # Compute median and MAD (Median Absolute Deviation)
+        window_median = np.nanmedian(window_data)
+        mad = np.nanmedian(np.abs(window_data - window_median))
+        
+        # Convert MAD to standard deviation equivalent
+        # MAD ≈ 0.6745 * std for normal distribution
+        sigma = mad / 0.6745 if mad > 1e-10 else 1e-10
+        
+        # Check if current point is an outlier
+        deviation = np.abs(signal[i] - window_median)
+        if deviation > n_sigma * sigma:
+            filtered[i] = window_median
+            outlier_mask[i] = True
+    
+    return filtered, outlier_mask
+
+
+def apply_quaternion_median_filter(df: pd.DataFrame,
+                                   quat_cols: List[str],
+                                   window_size: int = 5) -> Tuple[pd.DataFrame, Dict]:
+    """
+    Apply scipy.signal.medfilt to quaternion columns to remove flipping artifacts.
+    
+    This is a "surgical" clean that:
+    1. Applies scipy.signal.medfilt to each quaternion component (qx, qy, qz, qw)
+    2. Renormalizes quaternions after filtering to maintain unit length
+    3. Does NOT apply low-pass filtering (which would break quaternion geometry)
+    
+    Use case: Fixes quaternion "flips" (e.g., 330° Hip ROM issues) without 
+    distorting orientation data.
+    
+    Args:
+        df: Input DataFrame with quaternion columns
+        quat_cols: List of quaternion column names (ending in __qx, __qy, __qz, __qw)
+        window_size: Median filter window size (default: 5, must be odd)
+        
+    Returns:
+        Tuple of (filtered_dataframe, metadata_dict)
+    """
+    from scipy.signal import medfilt
+    
+    df_out = df.copy()
+    
+    # Ensure window_size is odd (required by medfilt)
+    if window_size % 2 == 0:
+        window_size += 1
+        logger.info(f"Adjusted window_size to {window_size} (must be odd for medfilt)")
+    
+    # Group quaternion columns by joint
+    joint_quats = {}
+    for col in quat_cols:
+        # Extract joint name (everything before __qx, __qy, __qz, __qw)
+        for suffix in ['__qx', '__qy', '__qz', '__qw']:
+            if col.endswith(suffix):
+                joint_name = col[:-len(suffix)]
+                if joint_name not in joint_quats:
+                    joint_quats[joint_name] = {}
+                component = suffix[2:]  # 'qx', 'qy', 'qz', 'qw'
+                joint_quats[joint_name][component] = col
+                break
+    
+    metadata = {
+        'method': 'scipy.signal.medfilt',
+        'window_size': window_size,
+        'total_joints': len(joint_quats),
+        'total_columns_filtered': 0,
+        'per_joint_results': {}
+    }
+    
+    total_cols_filtered = 0
+    
+    for joint_name, components in joint_quats.items():
+        # Check if we have all 4 components
+        if len(components) != 4:
+            logger.warning(f"Joint {joint_name} missing quaternion components, skipping")
+            continue
+        
+        # Apply medfilt to each component
+        for comp_name, col in components.items():
+            signal = df[col].values.astype(float)
+            
+            # Skip if all NaN
+            if np.all(np.isnan(signal)):
+                df_out[col] = signal
+                continue
+            
+            # Handle NaNs: fill temporarily, filter, restore NaN positions
+            nan_mask = np.isnan(signal)
+            if np.any(nan_mask):
+                # Fill NaNs with interpolated values for filtering
+                signal_filled = pd.Series(signal).interpolate(limit_direction='both').values
+                signal_filled = np.nan_to_num(signal_filled, nan=0.0)
+            else:
+                signal_filled = signal
+            
+            # Apply scipy.signal.medfilt
+            filtered = medfilt(signal_filled, kernel_size=window_size)
+            
+            # Restore NaN positions
+            if np.any(nan_mask):
+                filtered[nan_mask] = np.nan
+            
+            df_out[col] = filtered
+            total_cols_filtered += 1
+        
+        # Renormalize quaternions to unit length
+        qx_col = components.get('qx')
+        qy_col = components.get('qy')
+        qz_col = components.get('qz')
+        qw_col = components.get('qw')
+        
+        if all([qx_col, qy_col, qz_col, qw_col]):
+            qx = df_out[qx_col].values
+            qy = df_out[qy_col].values
+            qz = df_out[qz_col].values
+            qw = df_out[qw_col].values
+            
+            # Compute quaternion magnitude
+            mag = np.sqrt(qx**2 + qy**2 + qz**2 + qw**2)
+            
+            # Avoid division by zero
+            mag = np.where(mag < 1e-10, 1.0, mag)
+            
+            # Renormalize
+            df_out[qx_col] = qx / mag
+            df_out[qy_col] = qy / mag
+            df_out[qz_col] = qz / mag
+            df_out[qw_col] = qw / mag
+        
+        metadata['per_joint_results'][joint_name] = {
+            'components_filtered': list(components.keys()),
+            'renormalized': True
+        }
+    
+    metadata['total_columns_filtered'] = int(total_cols_filtered)
+    
+    logger.info(f"Quaternion medfilt complete: {total_cols_filtered} columns filtered across {len(joint_quats)} joints")
+    
+    return df_out, metadata
+
+
+def apply_adaptive_winter_filter(signal: np.ndarray,
+                                fs: float,
+                                fmin: float = 1.0,
+                                fmax: float = 20.0,
+                                min_cutoff: Optional[float] = None) -> Tuple[np.ndarray, Dict]:
+    """
+    Stage 3: Adaptive Low-Pass using Winter's Residual Method.
+    
+    Automatically calculates optimal cutoff for each joint/session by finding the
+    "elbow" in the residual curve - where you stop removing noise and start removing signal.
+    
+    The script tries every cutoff from fmin to fmax Hz and looks for the knee point.
+    
+    Args:
+        signal: 1D signal array (already artifact-cleaned)
+        fs: Sampling frequency (Hz)
+        fmin: Minimum cutoff to test (Hz, default: 1.0)
+        fmax: Maximum cutoff to test (Hz, default: 20.0)
+        min_cutoff: Biomechanical minimum cutoff (Hz, optional)
+        
+    Returns:
+        Tuple of (filtered_signal, metadata_dict)
+        - filtered_signal: Low-pass filtered signal
+        - metadata_dict: Contains cutoff_hz, method_used, etc.
+    """
+    # Run Winter residual analysis
+    winter_result = winter_residual_analysis(
+        signal, fs, fmin=int(fmin), fmax=int(fmax),
+        min_cutoff=min_cutoff, return_details=True
+    )
+    
+    if isinstance(winter_result, dict):
+        cutoff_hz = winter_result['cutoff_hz']
+        metadata = winter_result.copy()
+    else:
+        cutoff_hz = float(winter_result)
+        metadata = {'cutoff_hz': cutoff_hz}
+    
+    # Apply Butterworth filter with optimal cutoff
+    if cutoff_hz >= fs * 0.5 - 1:
+        # Cutoff too high, skip filtering
+        logger.warning(f"Cutoff {cutoff_hz:.1f} Hz too close to Nyquist ({fs*0.5:.1f} Hz), skipping filter")
+        return signal.copy(), metadata
+    
+    # Design 2nd-order Butterworth low-pass filter
+    b, a = butter(N=2, Wn=cutoff_hz/(0.5*fs), btype='low')
+    
+    # Apply zero-phase filter (filtfilt)
+    filtered = filtfilt(b, a, signal.astype(float))
+    
+    metadata['filter_applied'] = True
+    metadata['filter_type'] = 'Butterworth 2nd-order (zero-phase)'
+    
+    return filtered, metadata
+
+
+def apply_signal_cleaning_pipeline(df: pd.DataFrame,
+                                  fs: float,
+                                  pos_cols: List[str],
+                                  velocity_limit: float = 1800.0,
+                                  zscore_threshold: float = 5.0,
+                                  hampel_window: int = 5,
+                                  hampel_n_sigma: float = 3.0,
+                                  winter_fmin: float = 1.0,
+                                  winter_fmax: float = 20.0,
+                                  per_joint_winter: bool = True) -> Tuple[pd.DataFrame, Dict]:
+    """
+    Apply 3-Stage Signal Cleaning Pipeline: Artifact Detection → Hampel → Adaptive Winter.
+    
+    This generic "Gatekeeper" architecture treats artifacts (spikes) and noise (jitter)
+    as two separate problems, and can be applied to any joint in any session.
+    
+    Pipeline:
+    1. Stage 1 (Artifact Detector): Identifies tracking spikes using velocity + z-score
+    2. Stage 2 (Hampel Filter): Removes outliers using sliding window median
+    3. Stage 3 (Adaptive Winter): Finds optimal cutoff per-joint using residual analysis
+    
+    Args:
+        df: Input DataFrame with position columns
+        fs: Sampling frequency (Hz)
+        pos_cols: List of position column names to process
+        velocity_limit: Physiological velocity limit in signal units per second
+                       (e.g., 5000 mm/s for position data, 1800 deg/s for angular)
+        zscore_threshold: Z-score threshold for outlier detection (default: 5.0)
+        hampel_window: Hampel filter window size (default: 5, recommended: 5-7)
+        hampel_n_sigma: Hampel filter outlier threshold (default: 3.0)
+        winter_fmin: Minimum cutoff for Winter analysis (Hz)
+        winter_fmax: Maximum cutoff for Winter analysis (Hz)
+        per_joint_winter: If True, run Winter analysis per-joint (adaptive). 
+                         If False, use single global cutoff.
+        
+    Returns:
+        Tuple of (cleaned_dataframe, pipeline_metadata)
+    """
+    df_out = df.copy()
+    pipeline_metadata = {
+        'pipeline_type': '3_stage_signal_cleaning',
+        'stages': {
+            'stage1_artifact_detector': {
+                'method': 'Z-Score + Velocity Threshold',
+                'velocity_limit': velocity_limit,
+                'zscore_threshold': zscore_threshold
+            },
+            'stage2_hampel': {
+                'method': 'Sliding Window Median',
+                'window_size': hampel_window,
+                'n_sigma': hampel_n_sigma
+            },
+            'stage3_adaptive_winter': {
+                'method': "Winter's Residual Method",
+                'fmin': winter_fmin,
+                'fmax': winter_fmax,
+                'per_joint': per_joint_winter
+            }
+        },
+        'per_joint_results': {}
+    }
+    
+    # Validate position columns
+    pos_cols_valid = [col for col in pos_cols if col in df.columns and not df[col].isna().all()]
+    
+    if not pos_cols_valid:
+        raise ValueError(f"No valid position columns found in {len(pos_cols)} provided columns")
+    
+    logger.info(f"Applying 3-stage signal cleaning pipeline to {len(pos_cols_valid)} position columns")
+    
+    # Process each position column
+    total_artifacts = 0
+    total_hampel_outliers = 0
+    
+    for col in pos_cols_valid:
+        signal = df[col].values.astype(float)
+        
+        # Skip if all NaN
+        if np.all(np.isnan(signal)):
+            continue
+        
+        col_metadata = {}
+        
+        # Stage 1: Artifact Detection
+        artifact_mask = detect_artifact_gaps(
+            signal, fs, 
+            velocity_limit=velocity_limit,
+            zscore_threshold=zscore_threshold
+        )
+        n_artifacts = np.sum(artifact_mask)
+        total_artifacts += n_artifacts
+        
+        # Interpolate artifacts (simple linear interpolation)
+        signal_stage1 = signal.copy()
+        if n_artifacts > 0:
+            # Use pandas interpolation for simplicity
+            signal_series = pd.Series(signal_stage1)
+            signal_series.loc[artifact_mask] = np.nan
+            signal_stage1 = signal_series.interpolate(method='linear', limit_direction='both').values
+            # Fill any remaining NaNs at edges
+            signal_stage1 = pd.Series(signal_stage1).bfill().ffill().values
+        
+        col_metadata['stage1_artifacts_detected'] = int(n_artifacts)
+        
+        # Stage 2: Hampel Filter
+        signal_stage2, hampel_outliers = apply_hampel_filter(
+            signal_stage1,
+            window_size=hampel_window,
+            n_sigma=hampel_n_sigma
+        )
+        n_hampel = np.sum(hampel_outliers)
+        total_hampel_outliers += n_hampel
+        col_metadata['stage2_hampel_outliers'] = int(n_hampel)
+        
+        # Stage 3: Adaptive Winter Filter
+        # Determine minimum cutoff based on body region
+        marker_region = classify_marker_region(col)
+        region_config = BODY_REGIONS.get(marker_region, BODY_REGIONS['upper_distal'])
+        min_cutoff = region_config.get('fixed_cutoff', 6.0)  # Use fixed cutoff as minimum
+        
+        signal_stage3, winter_meta = apply_adaptive_winter_filter(
+            signal_stage2,
+            fs=fs,
+            fmin=winter_fmin,
+            fmax=winter_fmax,
+            min_cutoff=min_cutoff
+        )
+        
+        col_metadata['stage3_winter_cutoff'] = winter_meta.get('cutoff_hz', None)
+        col_metadata['stage3_winter_method'] = winter_meta.get('method_used', 'unknown')
+        col_metadata['marker_region'] = marker_region
+        
+        # Store result
+        df_out[col] = signal_stage3
+        pipeline_metadata['per_joint_results'][col] = col_metadata
+    
+    # Summary statistics
+    pipeline_metadata['summary'] = {
+        'total_columns_processed': len(pos_cols_valid),
+        'total_artifacts_detected': int(total_artifacts),
+        'total_hampel_outliers': int(total_hampel_outliers),
+        'avg_artifacts_per_column': total_artifacts / len(pos_cols_valid) if pos_cols_valid else 0,
+        'avg_hampel_outliers_per_column': total_hampel_outliers / len(pos_cols_valid) if pos_cols_valid else 0
+    }
+    
+    # Compute cutoff statistics
+    cutoffs = [meta.get('stage3_winter_cutoff') for meta in pipeline_metadata['per_joint_results'].values()
+               if meta.get('stage3_winter_cutoff') is not None]
+    if cutoffs:
+        pipeline_metadata['summary']['winter_cutoff_stats'] = {
+            'min': float(np.min(cutoffs)),
+            'max': float(np.max(cutoffs)),
+            'mean': float(np.mean(cutoffs)),
+            'median': float(np.median(cutoffs)),
+            'std': float(np.std(cutoffs))
+        }
+    
+    logger.info(f"3-stage pipeline complete: {total_artifacts} artifacts, {total_hampel_outliers} Hampel outliers")
+    
+    return df_out, pipeline_metadata
+
+
+def print_pipeline_debug_logs(pipeline_metadata: Dict, 
+                              top_n_joints: int = 20,
+                              show_all: bool = False) -> None:
+    """
+    Print detailed debug logs for the 3-stage signal cleaning pipeline.
+    
+    Args:
+        pipeline_metadata: Metadata dictionary from apply_signal_cleaning_pipeline
+        top_n_joints: Number of top joints to show in detail (default: 20)
+        show_all: If True, show all joints regardless of top_n_joints
+    """
+    print(f"\n{'='*80}")
+    print(f"📊 DETAILED PIPELINE DEBUG LOGS")
+    print(f"{'='*80}\n")
+    
+    # Pipeline configuration
+    stages = pipeline_metadata.get('stages', {})
+    print("🔧 PIPELINE CONFIGURATION:")
+    print(f"   Stage 1 (Artifact Detector):")
+    stage1 = stages.get('stage1_artifact_detector', {})
+    print(f"     - Velocity limit: {stage1.get('velocity_limit', 'N/A')} mm/s")
+    print(f"     - Z-score threshold: {stage1.get('zscore_threshold', 'N/A')}σ")
+    print(f"   Stage 2 (Hampel Filter):")
+    stage2 = stages.get('stage2_hampel', {})
+    print(f"     - Window size: {stage2.get('window_size', 'N/A')} frames")
+    print(f"     - Outlier threshold: {stage2.get('n_sigma', 'N/A')}σ")
+    print(f"   Stage 3 (Adaptive Winter):")
+    stage3 = stages.get('stage3_adaptive_winter', {})
+    print(f"     - Frequency range: {stage3.get('fmin', 'N/A')} - {stage3.get('fmax', 'N/A')} Hz")
+    print(f"     - Per-joint analysis: {stage3.get('per_joint', 'N/A')}")
+    
+    # Summary statistics
+    summary = pipeline_metadata.get('summary', {})
+    print(f"\n📈 SUMMARY STATISTICS:")
+    print(f"   Total columns processed: {summary.get('total_columns_processed', 0)}")
+    print(f"   Total artifacts detected: {summary.get('total_artifacts_detected', 0)}")
+    print(f"   Total Hampel outliers: {summary.get('total_hampel_outliers', 0)}")
+    print(f"   Avg artifacts per column: {summary.get('avg_artifacts_per_column', 0):.2f}")
+    print(f"   Avg Hampel outliers per column: {summary.get('avg_hampel_outliers_per_column', 0):.2f}")
+    
+    # Winter cutoff statistics
+    if 'winter_cutoff_stats' in summary:
+        cutoff_stats = summary['winter_cutoff_stats']
+        print(f"\n🎯 ADAPTIVE WINTER CUTOFF STATISTICS:")
+        print(f"   Range: {cutoff_stats['min']:.2f} - {cutoff_stats['max']:.2f} Hz")
+        print(f"   Mean: {cutoff_stats['mean']:.2f} Hz")
+        print(f"   Median: {cutoff_stats['median']:.2f} Hz")
+        print(f"   Std Dev: {cutoff_stats['std']:.2f} Hz")
+    
+    # Per-joint detailed results
+    per_joint = pipeline_metadata.get('per_joint_results', {})
+    if per_joint:
+        print(f"\n{'='*80}")
+        print(f"🔍 PER-JOINT DETAILED RESULTS")
+        print(f"{'='*80}\n")
+        
+        # Sort joints by total issues (artifacts + hampel outliers)
+        joint_scores = []
+        for col, meta in per_joint.items():
+            artifacts = meta.get('stage1_artifacts_detected', 0)
+            hampel = meta.get('stage2_hampel_outliers', 0)
+            total_issues = artifacts + hampel
+            joint_scores.append((col, meta, total_issues))
+        
+        # Sort by total issues (descending)
+        joint_scores.sort(key=lambda x: x[2], reverse=True)
+        
+        # Determine how many to show
+        n_to_show = len(joint_scores) if show_all else min(top_n_joints, len(joint_scores))
+        
+        print(f"Showing top {n_to_show} joints (sorted by total issues detected):\n")
+        print(f"{'Joint':<40} {'Region':<15} {'Artifacts':<12} {'Hampel':<12} {'Winter Cutoff':<15} {'Method':<15}")
+        print(f"{'-'*40} {'-'*15} {'-'*12} {'-'*12} {'-'*15} {'-'*15}")
+        
+        for col, meta, total_issues in joint_scores[:n_to_show]:
+            joint_name = col.replace('__px', '').replace('__py', '').replace('__pz', '')[:38]
+            region = meta.get('marker_region', 'unknown')
+            artifacts = meta.get('stage1_artifacts_detected', 0)
+            hampel = meta.get('stage2_hampel_outliers', 0)
+            cutoff = meta.get('stage3_winter_cutoff', None)
+            method = meta.get('stage3_winter_method', 'unknown')
+            
+            cutoff_str = f"{cutoff:.2f} Hz" if cutoff is not None else "N/A"
+            method_str = method[:14] if method else "N/A"
+            
+            print(f"{joint_name:<40} {region:<15} {artifacts:<12} {hampel:<12} {cutoff_str:<15} {method_str:<15}")
+        
+        if len(joint_scores) > n_to_show:
+            print(f"\n   ... and {len(joint_scores) - n_to_show} more joints (set show_all=True to see all)")
+        
+        # Statistics by region
+        print(f"\n{'='*80}")
+        print(f"📊 STATISTICS BY BODY REGION")
+        print(f"{'='*80}\n")
+        
+        region_stats = {}
+        for col, meta in per_joint.items():
+            region = meta.get('marker_region', 'unknown')
+            if region not in region_stats:
+                region_stats[region] = {
+                    'count': 0,
+                    'artifacts': 0,
+                    'hampel': 0,
+                    'cutoffs': []
+                }
+            
+            region_stats[region]['count'] += 1
+            region_stats[region]['artifacts'] += meta.get('stage1_artifacts_detected', 0)
+            region_stats[region]['hampel'] += meta.get('stage2_hampel_outliers', 0)
+            cutoff = meta.get('stage3_winter_cutoff')
+            if cutoff is not None:
+                region_stats[region]['cutoffs'].append(cutoff)
+        
+        print(f"{'Region':<20} {'Joints':<10} {'Artifacts':<12} {'Hampel':<12} {'Cutoff Range':<20} {'Mean Cutoff':<15}")
+        print(f"{'-'*20} {'-'*10} {'-'*12} {'-'*12} {'-'*20} {'-'*15}")
+        
+        for region, stats in sorted(region_stats.items()):
+            count = stats['count']
+            artifacts = stats['artifacts']
+            hampel = stats['hampel']
+            cutoffs = stats['cutoffs']
+            
+            if cutoffs:
+                cutoff_range = f"{min(cutoffs):.1f} - {max(cutoffs):.1f} Hz"
+                mean_cutoff = f"{np.mean(cutoffs):.2f} Hz"
+            else:
+                cutoff_range = "N/A"
+                mean_cutoff = "N/A"
+            
+            print(f"{region:<20} {count:<10} {artifacts:<12} {hampel:<12} {cutoff_range:<20} {mean_cutoff:<15}")
+        
+        # Joints with most issues
+        print(f"\n{'='*80}")
+        print(f"⚠️  JOINTS WITH MOST ISSUES (Top 10)")
+        print(f"{'='*80}\n")
+        
+        top_issues = sorted(joint_scores, key=lambda x: x[2], reverse=True)[:10]
+        for i, (col, meta, total_issues) in enumerate(top_issues, 1):
+            joint_name = col.replace('__px', '').replace('__py', '').replace('__pz', '')
+            artifacts = meta.get('stage1_artifacts_detected', 0)
+            hampel = meta.get('stage2_hampel_outliers', 0)
+            cutoff = meta.get('stage3_winter_cutoff', None)
+            region = meta.get('marker_region', 'unknown')
+            
+            print(f"{i:2d}. {joint_name}")
+            print(f"     Region: {region} | Artifacts: {artifacts} | Hampel: {hampel} | Total: {total_issues}")
+            if cutoff:
+                print(f"     Winter Cutoff: {cutoff:.2f} Hz ({meta.get('stage3_winter_method', 'unknown')})")
+            print()
+        
+        # Joints with Winter analysis issues
+        winter_issues = []
+        for col, meta in per_joint.items():
+            method = meta.get('stage3_winter_method', '')
+            cutoff = meta.get('stage3_winter_cutoff', None)
+            if 'failure' in method.lower() or cutoff is None or (cutoff and cutoff >= 19.0):
+                winter_issues.append((col, meta))
+        
+        if winter_issues:
+            print(f"\n{'='*80}")
+            print(f"⚠️  WINTER ANALYSIS ISSUES ({len(winter_issues)} joints)")
+            print(f"{'='*80}\n")
+            for col, meta in winter_issues[:10]:
+                joint_name = col.replace('__px', '').replace('__py', '').replace('__pz', '')
+                method = meta.get('stage3_winter_method', 'unknown')
+                cutoff = meta.get('stage3_winter_cutoff', None)
+                print(f"   {joint_name}: {method}")
+                if cutoff:
+                    print(f"     Cutoff: {cutoff:.2f} Hz")
+            if len(winter_issues) > 10:
+                print(f"\n   ... and {len(winter_issues) - 10} more joints with Winter issues")
+    
+    print(f"\n{'='*80}")
+    print(f"✅ DEBUG LOGS COMPLETE")
+    print(f"{'='*80}\n")
+
+
 def apply_winter_filter(df: pd.DataFrame, 
                      fs: float, 
                      pos_cols: List[str], 
