@@ -1,9 +1,9 @@
 {
     "identity": {
         "run_id": "734_T1_P1_R1_Take 2025-12-01 02.18.27 PM",
-        "processing_timestamp": "2026-01-18 13:39",
-        "pipeline_version": "v2.5_robust_audit",
-        "csv_source": "/Users/drorhazan/Documents/untitled folder/Gaga-mocap-Kinematics/data/734/T1/734_T1_P1_R1_Take 2025-12-01 02.18.27 PM.csv"
+        "processing_timestamp": "2026-01-23 20:59",
+        "pipeline_version": "v2.6_calibration_enhanced",
+        "csv_source": "C:\\Users\\drorh\\OneDrive - Mobileye\\Desktop\\gaga\\data\\734/T1/734_T1_P1_R1_Take 2025-12-01 02.18.27 PM.csv"
     },
     "raw_data_quality": {
         "total_frames": 30798,
@@ -11,6 +11,11 @@
         "sampling_rate_actual": 120.00480019200238,
         "optitrack_mean_error_mm": 0.0,
         "optitrack_version": "unknown"
+    },
+    "calibration": {
+        "pointer_tip_rms_error_mm": null,
+        "wand_error_mm": null,
+        "export_date": null
     },
     "skeleton_info": {
         "segments_found": [

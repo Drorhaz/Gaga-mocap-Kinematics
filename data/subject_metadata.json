@@ -1,8 +1,10 @@
 {
     "subject_info": {
-        "weight_kg": null, 
-        "height_cm": null,
-        "body_type": "average"
+        "weight_kg": null,
+        "height_cm": 158.24669254583807,
+        "body_type": "average",
+        "height_estimated": true,
+        "height_estimation_method": "direct_vertical"
     },
     "pipeline_switches": {
         "force_unit_normalization": false,

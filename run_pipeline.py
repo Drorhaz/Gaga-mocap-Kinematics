@@ -87,11 +87,11 @@ class PipelineRunner:
                 with open(self.config_file, 'w') as f:
                     yaml.dump(config, f, default_flow_style=False)
             
-            self.logger.info(f"✅ Config updated: current_csv = {config['current_csv']}")
+            self.logger.info(f"Config updated: current_csv = {config['current_csv']}")
             return True
             
         except Exception as e:
-            self.logger.error(f"❌ Failed to update config: {e}")
+            self.logger.error(f"Failed to update config: {e}")
             return False
     
     def run_notebook(self, notebook_num: str, timeout: int = 600) -> Dict:
@@ -118,7 +118,7 @@ class PipelineRunner:
         notebook_path = notebooks[0]
         output_path = notebook_path.parent / f"{notebook_path.stem}_output.ipynb"
         
-        self.logger.info(f"▶️  Running: {notebook_path.name}")
+        self.logger.info(f"Running: {notebook_path.name}")
         
         if self.dry_run:
             self.logger.info("   [DRY RUN - Skipped]")
@@ -130,16 +130,25 @@ class PipelineRunner:
             # Use papermill to execute notebook
             import papermill as pm
             
-            pm.execute_notebook(
-                input_path=str(notebook_path),
-                output_path=str(output_path),
-                kernel_name='python3',
-                timeout=timeout,
-                progress_bar=False
-            )
+            # Save current directory and change to project root
+            original_cwd = os.getcwd()
+            os.chdir(self.project_root)
+            
+            try:
+                pm.execute_notebook(
+                    input_path=str(notebook_path),
+                    output_path=str(output_path),
+                    kernel_name='python3',
+                    timeout=timeout,
+                    progress_bar=False,
+                    cwd=str(self.project_root)  # Set working directory
+                )
+            finally:
+                # Restore original directory
+                os.chdir(original_cwd)
             
             execution_time = (datetime.now() - start_time).total_seconds()
-            self.logger.info(f"✅ Completed in {execution_time:.1f}s")
+            self.logger.info(f"Completed in {execution_time:.1f}s")
             
             # Cleanup output notebook (optional)
             output_path.unlink(missing_ok=True)
@@ -153,7 +162,7 @@ class PipelineRunner:
         except Exception as e:
             execution_time = (datetime.now() - start_time).total_seconds()
             error_msg = str(e)
-            self.logger.error(f"❌ Failed after {execution_time:.1f}s: {error_msg}")
+            self.logger.error(f"Failed after {execution_time:.1f}s: {error_msg}")
             
             return {
                 'status': 'failed',
@@ -169,7 +178,7 @@ class PipelineRunner:
             Dict with run summary
         """
         self.logger.info("="*70)
-        self.logger.info(f"📁 Processing: {csv_path.name}")
+        self.logger.info(f"Processing: {csv_path.name}")
         self.logger.info("="*70)
         
         run_summary = {
@@ -197,7 +206,7 @@ class PipelineRunner:
             
             if result['status'] == 'failed':
                 all_success = False
-                self.logger.warning(f"⚠️  Stopping pipeline due to failure in notebook {notebook_num}")
+                self.logger.warning(f"Stopping pipeline due to failure in notebook {notebook_num}")
                 break
         
         # Step 3: Verify outputs
@@ -207,10 +216,10 @@ class PipelineRunner:
             
             if derivatives_exist:
                 run_summary['status'] = 'success'
-                self.logger.info(f"🎉 Successfully processed {csv_path.name}")
+                self.logger.info(f"Successfully processed {csv_path.name}")
             else:
                 run_summary['status'] = 'partial'
-                self.logger.warning(f"⚠️  Pipeline completed but missing some outputs")
+                self.logger.warning(f"Pipeline completed but missing some outputs")
         else:
             run_summary['status'] = 'failed'
         
@@ -244,24 +253,24 @@ class PipelineRunner:
     def run_master_report(self) -> bool:
         """Execute notebook 07 to generate master quality report."""
         self.logger.info("="*70)
-        self.logger.info("📊 Generating Master Quality Report (Notebook 07)")
+        self.logger.info("Generating Master Quality Report (Notebook 07)")
         self.logger.info("="*70)
         
         result = self.run_notebook('07', timeout=300)
         
         if result['status'] == 'success':
-            self.logger.info("✅ Master report generated successfully")
+            self.logger.info("Master report generated successfully")
             
             # Find the generated Excel file
             reports_dir = self.project_root / "reports"
             excel_files = list(reports_dir.glob("Master_Audit_Log_*.xlsx"))
             if excel_files:
                 latest = max(excel_files, key=lambda p: p.stat().st_mtime)
-                self.logger.info(f"📄 Report: {latest}")
+                self.logger.info(f"Report: {latest}")
             
             return True
         else:
-            self.logger.error("❌ Master report generation failed")
+            self.logger.error("Master report generation failed")
             return False
     
     def process_batch(self, csv_files: List[Path], 
@@ -284,7 +293,7 @@ class PipelineRunner:
             'failed_count': 0
         }
         
-        self.logger.info(f"🚀 Starting batch processing of {len(csv_files)} files")
+        self.logger.info(f"Starting batch processing of {len(csv_files)} files")
         
         for i, csv_path in enumerate(csv_files, 1):
             self.logger.info(f"\n[{i}/{len(csv_files)}] Processing {csv_path.name}")
@@ -298,7 +307,7 @@ class PipelineRunner:
                 batch_summary['failed_count'] += 1
                 
                 if stop_on_error:
-                    self.logger.error("🛑 Stopping batch due to error (stop_on_error=True)")
+                    self.logger.error("Stopping batch due to error (stop_on_error=True)")
                     break
         
         batch_summary['end_time'] = datetime.now().isoformat()
@@ -323,7 +332,7 @@ class PipelineRunner:
         with open(summary_file, 'w') as f:
             json.dump(summary, f, indent=2)
         
-        self.logger.info(f"📝 Batch summary saved: {summary_file}")
+        self.logger.info(f"Batch summary saved: {summary_file}")
 
 
 def main():
@@ -397,8 +406,8 @@ def main():
         data_dir = runner.project_root / "data"
         csv_files = [data_dir / csv_path for csv_path in batch_config['csv_files']]
         
-        print(f"📋 Loaded batch config: {batch_config.get('batch_name', 'Unnamed')}")
-        print(f"📄 Description: {batch_config.get('description', 'N/A')}")
+        print(f"Loaded batch config: {batch_config.get('batch_name', 'Unnamed')}")
+        print(f"Description: {batch_config.get('description', 'N/A')}")
     elif args.auto_discover:
         csv_files = runner.discover_csv_files()
     else:
@@ -406,20 +415,20 @@ def main():
         sys.exit(1)
     
     if not csv_files:
-        print("❌ No CSV files found to process")
+        print("ERROR: No CSV files found to process")
         sys.exit(1)
     
     # Run pipeline
-    print(f"\n🚀 Processing {len(csv_files)} file(s)...")
+    print(f"\nProcessing {len(csv_files)} file(s)...")
     batch_result = runner.process_batch(csv_files, stop_on_error=args.stop_on_error)
     
     # Print summary
     print("\n" + "="*70)
-    print("📊 BATCH PROCESSING COMPLETE")
+    print("BATCH PROCESSING COMPLETE")
     print("="*70)
-    print(f"✅ Success: {batch_result['success_count']}")
-    print(f"❌ Failed:  {batch_result['failed_count']}")
-    print(f"📁 Total:   {batch_result['total_files']}")
+    print(f"Success: {batch_result['success_count']}")
+    print(f"Failed:  {batch_result['failed_count']}")
+    print(f"Total:   {batch_result['total_files']}")
     print("="*70)
 
 

@@ -1,339 +1,397 @@
 """
-ISB Joint Angle Extraction Module
+ISB-Compliant Euler Angle Extraction
+=====================================
+Per Wu et al. (2002, 2005) and the International Society of Biomechanics (ISB) standards.
 
-This module implements anatomical joint angle extraction using ISB (International Society of Biomechanics)
-standard Euler sequences for relative joint rotations.
+CRITICAL: Joint-specific sequences prevent Gimbal Lock and ensure anatomical validity.
+Generic XYZ sequences are NOT appropriate for biomechanics.
 
-Pipeline placement: After filtering (Ticket 10), before joint angle analysis.
+References:
+- Wu et al. (2002): Shoulder and elbow
+- Wu et al. (2005): Hip and knee  
+- ISB recommendations for ankle and spine
+
+Author: Gaga Motion Analysis Pipeline
+Date: 2026-01-22
 """
 
 import numpy as np
-import pandas as pd
-import logging
-from typing import Dict, List, Tuple, Optional
-from scipy.spatial.transform import Rotation
+from scipy.spatial.transform import Rotation as R
 
-logger = logging.getLogger(__name__)
+# ============================================================
+# ISB-RECOMMENDED EULER SEQUENCES PER JOINT
+# ============================================================
 
-# ISB standard Euler sequences by joint
-EULER_SEQ_BY_JOINT = {
-    'Shoulder': 'yxy',  # ISB recommendation for shoulder
-    'Knee': 'zxy',     # ISB recommendation for knee  
-    'Elbow': 'zxy',     # ISB recommendation for elbow
-    # Default for all other joints
-    'default': 'zxy'
+ISB_EULER_SEQUENCES = {
+    # SPINE & TORSO (Flexion/Extension, Lateral Bending, Axial Rotation)
+    # Sequence: Z-X-Y per ISB spine recommendations
+    'Hips': 'ZXY',           # Root/Pelvis orientation
+    'Spine': 'ZXY',          # Lower spine
+    'Spine1': 'ZXY',         # Mid-spine/thorax
+    'Neck': 'ZXY',           # Cervical spine
+    'Head': 'ZXY',           # Head orientation
+    
+    # SHOULDER (Per Wu et al. 2002, 2005)
+    # Y-X-Y sequence prevents gimbal lock during arm elevation
+    # Y1: Plane of elevation, X: Elevation angle, Y2: Axial rotation
+    'LeftShoulder': 'YXY',
+    'RightShoulder': 'YXY',
+    
+    # UPPER LIMB (Per Wu et al. 2002)
+    # Elbow: Z-X-Y (Flexion/Extension, Carrying Angle, Pronation/Supination)
+    'LeftArm': 'ZXY',        # Humerus
+    'LeftForeArm': 'ZXY',    # Radius/Ulna (includes pronation/supination)
+    'LeftHand': 'ZXY',       # Wrist and hand
+    
+    'RightArm': 'ZXY',
+    'RightForeArm': 'ZXY',
+    'RightHand': 'ZXY',
+    
+    # HAND SEGMENTS (Finger joints)
+    # Z-X-Y: Flexion/Extension, Ab/Adduction, Rotation
+    'LeftHandThumb1': 'ZXY',
+    'LeftHandThumb2': 'ZXY',
+    'LeftHandThumb3': 'ZXY',
+    'LeftHandIndex1': 'ZXY',
+    'LeftHandIndex2': 'ZXY',
+    'LeftHandIndex3': 'ZXY',
+    'LeftHandMiddle1': 'ZXY',
+    'LeftHandMiddle2': 'ZXY',
+    'LeftHandMiddle3': 'ZXY',
+    'LeftHandRing1': 'ZXY',
+    'LeftHandRing2': 'ZXY',
+    'LeftHandRing3': 'ZXY',
+    'LeftHandPinky1': 'ZXY',
+    'LeftHandPinky2': 'ZXY',
+    'LeftHandPinky3': 'ZXY',
+    
+    'RightHandThumb1': 'ZXY',
+    'RightHandThumb2': 'ZXY',
+    'RightHandThumb3': 'ZXY',
+    'RightHandIndex1': 'ZXY',
+    'RightHandIndex2': 'ZXY',
+    'RightHandIndex3': 'ZXY',
+    'RightHandMiddle1': 'ZXY',
+    'RightHandMiddle2': 'ZXY',
+    'RightHandMiddle3': 'ZXY',
+    'RightHandRing1': 'ZXY',
+    'RightHandRing2': 'ZXY',
+    'RightHandRing3': 'ZXY',
+    'RightHandPinky1': 'ZXY',
+    'RightHandPinky2': 'ZXY',
+    'RightHandPinky3': 'ZXY',
+    
+    # LOWER LIMB (Per Wu et al. 2005)
+    # Hip: Z-X-Y (Flexion/Extension, Ab/Adduction, Internal/External Rotation)
+    # Knee: Z-X-Y (Flexion/Extension, Ab/Adduction, Internal/External Rotation)
+    # Ankle: Z-X-Y (Plantar/Dorsiflexion, Inversion/Eversion, Ab/Adduction)
+    'LeftUpLeg': 'ZXY',      # Femur (hip joint)
+    'LeftLeg': 'ZXY',        # Tibia (knee joint)
+    'LeftFoot': 'ZXY',       # Foot (ankle joint)
+    'LeftToeBase': 'ZXY',    # Toe joints
+    
+    'RightUpLeg': 'ZXY',
+    'RightLeg': 'ZXY',
+    'RightFoot': 'ZXY',
+    'RightToeBase': 'ZXY',
 }
 
+# ============================================================
+# ANATOMICAL RANGE OF MOTION LIMITS (Degrees)
+# ============================================================
+# Per Ryu et al. (2022) and standard anatomical references
+# Format: (min, max) for primary axis (first rotation in sequence)
 
-def get_euler_sequence(joint_name: str) -> str:
-    """
-    Get ISB Euler sequence for a given joint.
+ANATOMICAL_ROM_LIMITS = {
+    # SPINE (Flexion/Extension as primary)
+    'Hips': (-30, 30),           # Pelvis tilt
+    'Spine': (-45, 45),          # Lumbar flexion/extension
+    'Spine1': (-45, 45),         # Thoracic flexion/extension
+    'Neck': (-60, 60),           # Cervical flexion/extension
+    'Head': (-70, 70),           # Head flexion/extension
     
-    Args:
-        joint_name: Name of the joint
+    # SHOULDER (Elevation angle)
+    'LeftShoulder': (0, 180),    # 0-180° arm elevation
+    'RightShoulder': (0, 180),
+    
+    # ELBOW (Flexion/Extension)
+    'LeftArm': (-180, 180),      # Full rotation possible
+    'LeftForeArm': (0, 150),     # Elbow flexion: 0-150°
+    'LeftHand': (-90, 90),       # Wrist flexion/extension
+    
+    'RightArm': (-180, 180),
+    'RightForeArm': (0, 150),
+    'RightHand': (-90, 90),
+    
+    # FINGERS (MCP, PIP, DIP flexion)
+    'LeftHandThumb1': (0, 90),   # Thumb MCP
+    'LeftHandThumb2': (0, 90),   # Thumb IP
+    'LeftHandThumb3': (0, 90),
+    'LeftHandIndex1': (0, 90),   # Index MCP
+    'LeftHandIndex2': (0, 110),  # Index PIP
+    'LeftHandIndex3': (0, 90),   # Index DIP
+    # ... (similar for other fingers)
+    
+    'RightHandThumb1': (0, 90),
+    'RightHandThumb2': (0, 90),
+    'RightHandThumb3': (0, 90),
+    'RightHandIndex1': (0, 90),
+    'RightHandIndex2': (0, 110),
+    'RightHandIndex3': (0, 90),
+    
+    # HIP (Flexion/Extension)
+    'LeftUpLeg': (-20, 125),     # Hip: 20° extension to 125° flexion
+    'LeftLeg': (0, 140),         # Knee: 0-140° flexion
+    'LeftFoot': (-30, 50),       # Ankle: 30° plantarflexion to 50° dorsiflexion
+    'LeftToeBase': (-45, 90),    # Toe flexion/extension
+    
+    'RightUpLeg': (-20, 125),
+    'RightLeg': (0, 140),
+    'RightFoot': (-30, 50),
+    'RightToeBase': (-45, 90),
+}
+
+# Gaga-specific adjustments (higher intensity movements)
+GAGA_ROM_TOLERANCE = 1.15  # Allow 15% beyond normal ROM for expressive dance
+
+
+def get_euler_sequence(joint_name):
+    """
+    Get ISB-compliant Euler sequence for a joint.
+    
+    Parameters:
+    -----------
+    joint_name : str
+        Standardized joint name
         
     Returns:
-        Euler sequence string (e.g., 'zxy', 'yxy')
+    --------
+    str : Euler sequence (e.g., 'ZXY', 'YXY')
     """
-    return EULER_SEQ_BY_JOINT.get(joint_name, EULER_SEQ_BY_JOINT['default'])
+    return ISB_EULER_SEQUENCES.get(joint_name, 'ZXY')  # Default to ZXY if not specified
 
 
-def extract_isb_euler(df: pd.DataFrame, 
-                    joint_map: Dict[str, Dict[str, str]]) -> pd.DataFrame:
+def quaternion_to_isb_euler(quat, joint_name):
     """
-    Extract ISB anatomical joint angles using relative rotations.
+    Convert quaternion to ISB-compliant Euler angles for a specific joint.
     
-    Computes relative rotation between parent and child segments:
-    R_rel = R_parent.inv() * R_child
-    
-    Args:
-        df: DataFrame with aligned quaternion columns from Ticket 8
-        joint_map: Dictionary mapping joint names to parent/child relationships
-                   Format: {joint_name: {'parent': 'parent_joint', 'child': 'child_joint'}}
-    
-    Returns:
-        DataFrame with added Euler angle columns: {joint}__e1_deg, {joint}__e2_deg, {joint}__e3_deg
-        
-    Raises:
-        ValueError: If required quaternion columns are missing
-    """
-    df_out = df.copy()
-    
-    for joint_name, relationships in joint_map.items():
-        parent_joint = relationships['parent']
-        child_joint = relationships['child']
-        
-        # Get Euler sequence for this joint
-        euler_seq = get_euler_sequence(joint_name)
-        
-        logger.info(f"Processing {joint_name}: {parent_joint} -> {child_joint}, sequence: {euler_seq}")
-        
-        # Extract aligned quaternions (from Ticket 8)
-        parent_quat = _extract_aligned_quaternion(df, parent_joint)
-        child_quat = _extract_aligned_quaternion(df, child_joint)
-        
-        # Validate inputs
-        if parent_quat is None or child_quat is None:
-            missing = []
-            if parent_quat is None:
-                missing.append(f"{parent_joint}__q_aligned")
-            if child_quat is None:
-                missing.append(f"{child_joint}__q_aligned")
-            raise ValueError(f"Missing aligned quaternion columns: {missing}")
-        
-        # Convert to Rotation objects
-        R_parent = Rotation.from_quat(parent_quat)
-        R_child = Rotation.from_quat(child_quat)
-        
-        # Compute relative rotation: R_rel = R_parent.inv() * R_child
-        R_rel = R_parent.inv() * R_child
-        
-        # Extract Euler angles in degrees
-        euler_angles = R_rel.as_euler(euler_seq, degrees=True)
-        
-        # Store in DataFrame
-        df_out[f'{joint_name}__e1_deg'] = euler_angles[:, 0]
-        df_out[f'{joint_name}__e2_deg'] = euler_angles[:, 1] 
-        df_out[f'{joint_name}__e3_deg'] = euler_angles[:, 2]
-        
-        logger.info(f"Extracted {joint_name} Euler angles: {euler_seq} sequence")
-    
-    return df_out
-
-
-def _extract_aligned_quaternion(df: pd.DataFrame, joint_name: str) -> Optional[np.ndarray]:
-    """
-    Extract aligned quaternion for a joint from DataFrame.
-    
-    Args:
-        df: DataFrame with quaternion columns
-        joint_name: Name of the joint
+    Parameters:
+    -----------
+    quat : array-like, shape (4,) or (N, 4)
+        Quaternion(s) in [x, y, z, w] format
+    joint_name : str
+        Joint name to determine appropriate sequence
         
     Returns:
-        Quaternion array (N, 4) in xyzw order, or None if not found
+    --------
+    euler : np.ndarray
+        Euler angles in degrees, shape (3,) or (N, 3)
+        Order depends on joint-specific ISB sequence
     """
-    # Try different suffix patterns for aligned quaternions
-    suffixes = ['__q_aligned', '__qx_aligned', '__qy_aligned', '__qz_aligned', '__qw_aligned']
+    sequence = get_euler_sequence(joint_name)
     
-    # First try single quaternion column
-    quat_col = f'{joint_name}__q_aligned'
-    if quat_col in df.columns:
-        return df[quat_col].values
+    # Handle single quaternion or array
+    quat = np.asarray(quat)
+    single = quat.ndim == 1
     
-    # Then try separate quaternion components
-    qx_col = f'{joint_name}__qx_aligned'
-    qy_col = f'{joint_name}__qy_aligned' 
-    qz_col = f'{joint_name}__qz_aligned'
-    qw_col = f'{joint_name}__qw_aligned'
+    if single:
+        quat = quat.reshape(1, -1)
     
-    quat_cols = [qx_col, qy_col, qz_col, qw_col]
-    if all(col in df.columns for col in quat_cols):
-        # Combine separate components into quaternion array
-        quat_array = np.column_stack([
-            df[qx_col].values,
-            df[qy_col].values, 
-            df[qz_col].values,
-            df[qw_col].values
-        ])
-        return quat_array
+    # Convert using scipy Rotation
+    rot = R.from_quat(quat)
+    euler = rot.as_euler(sequence, degrees=True)
     
-    # Try non-aligned quaternions as fallback
-    fallback_suffixes = ['__quat', '__qx', '__qy', '__qz', '__qw']
-    for suffix in fallback_suffixes:
-        if suffix == '__quat':
-            col = f'{joint_name}{suffix}'
-        else:
-            col = f'{joint_name}{suffix}'
-        
-        if col in df.columns:
-            if suffix == '__quat':
-                return df[col].values
-            else:
-                # Need to combine components
-                base_suffix = suffix.replace('_x', '').replace('_y', '').replace('_z', '').replace('_w', '')
-                qx_col = f'{joint_name}__qx'
-                qy_col = f'{joint_name}__qy'
-                qz_col = f'{joint_name}__qz' 
-                qw_col = f'{joint_name}__qw'
-                
-                if all(col in df.columns for col in [qx_col, qy_col, qz_col, qw_col]):
-                    quat_array = np.column_stack([
-                        df[qx_col].values,
-                        df[qy_col].values,
-                        df[qz_col].values,
-                        df[qw_col].values
-                    ])
-                    return quat_array
-    
-    logger.warning(f"No quaternion data found for joint {joint_name}")
-    return None
+    return euler[0] if single else euler
 
 
-def validate_joint_angles(df: pd.DataFrame, 
-                      joint_map: Dict[str, Dict[str, str]],
-                      tolerance: float = 1e-6) -> Dict[str, bool]:
+def check_anatomical_validity(euler_angles, joint_name, allow_gaga_tolerance=True):
     """
-    Validate joint angle extraction by testing identity case.
+    Check if Euler angles are within anatomically valid ranges.
     
-    Test: If R_child == R_parent, then all 3 angles should be 0.0 ± tolerance.
-    
-    Args:
-        df: DataFrame with joint angles
-        joint_map: Joint mapping used for extraction
-        tolerance: Tolerance for zero angles (degrees)
+    Parameters:
+    -----------
+    euler_angles : np.ndarray
+        Euler angles in degrees, shape (3,) or (N, 3)
+    joint_name : str
+        Joint name
+    allow_gaga_tolerance : bool
+        If True, apply Gaga-specific tolerance for expressive movements
         
     Returns:
-        Dictionary mapping joint names to validation results
+    --------
+    dict : Validation results with keys:
+        - is_valid : bool
+        - primary_angle : float (first angle in sequence)
+        - violations : list of str (descriptions of violations)
+        - rom_limits : tuple (min, max) used for validation
     """
-    validation_results = {}
+    euler_angles = np.asarray(euler_angles)
+    single = euler_angles.ndim == 1
     
-    for joint_name in joint_map.keys():
-        e1_col = f'{joint_name}__e1_deg'
-        e2_col = f'{joint_name}__e2_deg'
-        e3_col = f'{joint_name}__e3_deg'
-        
-        if all(col in df.columns for col in [e1_col, e2_col, e3_col]):
-            e1_angles = df[e1_col].values
-            e2_angles = df[e2_col].values
-            e3_angles = df[e3_col].values
-            
-            # Check if angles are close to zero
-            e1_valid = np.allclose(e1_angles, 0.0, atol=tolerance)
-            e2_valid = np.allclose(e2_angles, 0.0, atol=tolerance)
-            e3_valid = np.allclose(e3_angles, 0.0, atol=tolerance)
-            
-            validation_results[joint_name] = e1_valid and e2_valid and e3_valid
-            
-            if not validation_results[joint_name]:
-                logger.warning(f"Joint {joint_name} identity validation failed: "
-                           f"e1_max={np.max(np.abs(e1_angles)):.2e}, "
-                           f"e2_max={np.max(np.abs(e2_angles)):.2e}, "
-                           f"e3_max={np.max(np.abs(e3_angles)):.2e}")
-        else:
-            validation_results[joint_name] = False
-            logger.warning(f"Missing angle columns for joint {joint_name}")
+    if single:
+        euler_angles = euler_angles.reshape(1, -1)
     
-    return validation_results
+    # Get ROM limits for this joint
+    rom_limits = ANATOMICAL_ROM_LIMITS.get(joint_name, (-180, 180))
+    
+    # Apply Gaga tolerance if requested
+    if allow_gaga_tolerance:
+        range_width = rom_limits[1] - rom_limits[0]
+        extension = range_width * (GAGA_ROM_TOLERANCE - 1.0) / 2
+        rom_limits = (rom_limits[0] - extension, rom_limits[1] + extension)
+    
+    # Check primary angle (first in sequence)
+    primary_angles = euler_angles[:, 0]
+    
+    violations = []
+    for i, angle in enumerate(primary_angles):
+        if angle < rom_limits[0] or angle > rom_limits[1]:
+            violations.append(f"Frame {i}: {angle:.1f}° outside range {rom_limits}")
+    
+    is_valid = len(violations) == 0
+    
+    result = {
+        'is_valid': is_valid,
+        'primary_angle_mean': float(np.mean(primary_angles)),
+        'primary_angle_range': (float(np.min(primary_angles)), float(np.max(primary_angles))),
+        'violations': violations[:10],  # Limit to first 10 violations
+        'violation_count': len(violations),
+        'rom_limits': rom_limits,
+        'sequence': get_euler_sequence(joint_name)
+    }
+    
+    return result
 
 
-def get_euler_columns(joint_name: str) -> List[str]:
+def convert_dataframe_to_isb_euler(df, joint_names, verbose=True):
     """
-    Get standard Euler angle column names for a joint.
+    Convert all quaternions in a DataFrame to ISB-compliant Euler angles.
     
-    Args:
-        joint_name: Name of the joint
-        
-    Returns:
-        List of column names: [e1, e2, e3]
-    """
-    return [
-        f'{joint_name}__e1_deg',
-        f'{joint_name}__e2_deg',
-        f'{joint_name}__e3_deg'
-    ]
-
-
-def get_joint_angle_summary(df: pd.DataFrame, 
-                        joint_names: List[str]) -> pd.DataFrame:
-    """
-    Generate summary statistics for joint angles.
-    
-    Args:
-        df: DataFrame with joint angles
-        joint_names: List of joint names to summarize
-        
-    Returns:
-        DataFrame with summary statistics for each joint
-    """
-    summary_data = []
-    
-    for joint_name in joint_names:
-        euler_cols = get_euler_columns(joint_name)
-        
-        if all(col in df.columns for col in euler_cols):
-            for i, col in enumerate(euler_cols):
-                angles = df[col].values
-                
-                # Remove NaN values for statistics
-                valid_angles = angles[~np.isnan(angles)]
-                
-                if len(valid_angles) > 0:
-                    summary_data.append({
-                        'joint': joint_name,
-                        'axis': f'e{i+1}',
-                        'mean_deg': np.mean(valid_angles),
-                        'std_deg': np.std(valid_angles),
-                        'min_deg': np.min(valid_angles),
-                        'max_deg': np.max(valid_angles),
-                        'range_deg': np.max(valid_angles) - np.min(valid_angles),
-                        'n_samples': len(valid_angles)
-                    })
-                else:
-                    summary_data.append({
-                        'joint': joint_name,
-                        'axis': f'e{i+1}',
-                        'mean_deg': np.nan,
-                        'std_deg': np.nan,
-                        'min_deg': np.nan,
-                        'max_deg': np.nan,
-                        'range_deg': np.nan,
-                        'n_samples': 0
-                    })
-    
-    return pd.DataFrame(summary_data)
-
-
-def check_euler_gimbal_lock(df: pd.DataFrame, 
-                          joint_name: str,
-                          threshold: float = 85.0) -> Dict[str, any]:
-    """
-    Check for potential gimbal lock conditions in Euler angles.
-    
-    Args:
-        df: DataFrame with joint angles
-        joint_name: Name of the joint to check
-        threshold: Angle threshold (degrees) to flag potential gimbal lock
+    Parameters:
+    -----------
+    df : pd.DataFrame
+        DataFrame with quaternion columns (__qx, __qy, __qz, __qw)
+    joint_names : list
+        List of joint names to process
+    verbose : bool
+        Print progress
         
     Returns:
-        Dictionary with gimbal lock analysis results
+    --------
+    df_euler : pd.DataFrame
+        New DataFrame with ISB Euler angles (__euler_0, __euler_1, __euler_2)
+    validation_report : dict
+        Per-joint validation results
     """
-    euler_cols = get_euler_columns(joint_name)
+    import pandas as pd
     
-    if not all(col in df.columns for col in euler_cols):
-        return {'error': f'Missing Euler columns for {joint_name}'}
+    euler_data = {}
+    validation_report = {}
     
-    e2_angles = df[euler_cols[1]].values  # Middle angle is most prone to gimbal lock
+    for joint in joint_names:
+        quat_cols = [f'{joint}__qx', f'{joint}__qy', f'{joint}__qz', f'{joint}__qw']
+        
+        # Check if all quaternion columns exist
+        if not all(col in df.columns for col in quat_cols):
+            if verbose:
+                print(f"⚠️  Skipping {joint}: Missing quaternion columns")
+            continue
+        
+        # Extract quaternions
+        quats = df[quat_cols].values
+        
+        # Convert to ISB Euler
+        euler = quaternion_to_isb_euler(quats, joint)
+        
+        # Store with descriptive names
+        sequence = get_euler_sequence(joint)
+        euler_data[f'{joint}__euler_0_{sequence[0]}'] = euler[:, 0]
+        euler_data[f'{joint}__euler_1_{sequence[1]}'] = euler[:, 1]
+        euler_data[f'{joint}__euler_2_{sequence[2]}'] = euler[:, 2]
+        
+        # Validate
+        validation = check_anatomical_validity(euler, joint)
+        validation_report[joint] = validation
+        
+        if verbose and not validation['is_valid']:
+            print(f"⚠️  {joint}: {validation['violation_count']} frames outside anatomical range")
     
-    # Check for angles near ±90 degrees (gimbal lock condition)
-    near_90 = np.abs(e2_angles - 90.0) < threshold
-    near_minus_90 = np.abs(e2_angles + 90.0) < threshold
+    df_euler = pd.DataFrame(euler_data, index=df.index)
     
-    gimbal_frames = np.where(near_90 | near_minus_90)[0]
+    return df_euler, validation_report
+
+
+# =============================================================================
+# GATE 4: ISB COMPLIANCE AUDIT FUNCTIONS
+# =============================================================================
+
+def get_euler_sequences_audit(joint_list: list) -> dict:
+    """
+    Get ISB Euler sequences used for each joint (Gate 4 audit).
+    
+    Parameters
+    ----------
+    joint_list : list
+        List of joint names
+        
+    Returns
+    -------
+    dict with:
+        - step_06_euler_sequences_used: Dict of joint -> sequence
+        - step_06_isb_compliant: True if all joints use ISB sequences
+    """
+    sequences = {}
+    for joint in joint_list:
+        sequences[joint] = get_euler_sequence(joint)
+    
+    # Check if all joints use ISB-recommended sequences
+    # (ISB_EULER_SEQUENCES contains the recommended ones)
+    non_isb_joints = [j for j in joint_list if j not in ISB_EULER_SEQUENCES]
     
     return {
-        'joint': joint_name,
-        'gimbal_frames': gimbal_frames,
-        'n_gimbal_frames': len(gimbal_frames),
-        'percentage_gimbal': 100.0 * len(gimbal_frames) / len(e2_angles),
-        'e2_range': [np.min(e2_angles), np.max(e2_angles)],
-        'threshold_deg': threshold
+        "step_06_euler_sequences_used": sequences,
+        "step_06_isb_compliant": len(non_isb_joints) == 0,
+        "step_06_non_isb_joints": non_isb_joints if non_isb_joints else None
     }
 
 
-def create_standard_joint_map() -> Dict[str, Dict[str, str]]:
+def assess_quaternion_health(max_quat_norm_err: float) -> dict:
     """
-    Create a standard joint mapping for common biomechanical joints.
+    Determine Gate 4 status based on quaternion normalization error.
     
-    Returns:
-        Dictionary mapping joint names to parent-child relationships
+    Parameters
+    ----------
+    max_quat_norm_err : float
+        Maximum quaternion normalization error across all frames/joints
+        
+    Returns
+    -------
+    dict with:
+        - step_06_quat_norm_err: The error value
+        - step_06_math_status: PASS/REVIEW/REJECT
+        - step_06_math_decision_reason: Explanation string
+        
+    Thresholds
+    ----------
+    - err <= 0.01: PASS (quaternion math stable)
+    - err 0.01-0.05: REVIEW (drift detected)
+    - err > 0.05: REJECT (Gimbal Lock likely)
     """
+    QUAT_WARN_THRESHOLD = 0.01
+    QUAT_REJECT_THRESHOLD = 0.05
+    
+    if max_quat_norm_err > QUAT_REJECT_THRESHOLD:
+        status = "REJECT"
+        reason = f"REJECT: Quaternion Math Failure — norm_err = {max_quat_norm_err:.6f} > 0.05 (Gimbal Lock likely)"
+    elif max_quat_norm_err > QUAT_WARN_THRESHOLD:
+        status = "REVIEW"
+        reason = f"REVIEW: Quaternion Drift — norm_err = {max_quat_norm_err:.6f} > 0.01"
+    else:
+        status = "PASS"
+        reason = f"Quaternion health excellent: norm_err = {max_quat_norm_err:.6f}"
+    
     return {
-        'RightShoulder': {'parent': 'Thorax', 'child': 'RightUpperArm'},
-        'LeftShoulder': {'parent': 'Thorax', 'child': 'LeftUpperArm'},
-        'RightElbow': {'parent': 'RightUpperArm', 'child': 'RightForearm'},
-        'LeftElbow': {'parent': 'LeftUpperArm', 'child': 'LeftForearm'},
-        'RightKnee': {'parent': 'RightThigh', 'child': 'RightShank'},
-        'LeftKnee': {'parent': 'LeftThigh', 'child': 'LeftShank'},
-        'RightHip': {'parent': 'Pelvis', 'child': 'RightThigh'},
-        'LeftHip': {'parent': 'Pelvis', 'child': 'LeftThigh'}
+        "step_06_quat_norm_err": max_quat_norm_err,
+        "step_06_math_status": status,
+        "step_06_math_decision_reason": reason if status != "PASS" else None
     }

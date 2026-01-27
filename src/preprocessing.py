@@ -76,6 +76,57 @@ def correct_motive_name(raw_name):
     
     return mapping.get(name, name)
 
+def extract_optitrack_calibration_metadata(rows):
+    """
+    Extract OptiTrack/Motive calibration metadata from CSV header rows.
+    Looks for calibration quality metrics (Wand Error, Pointer RMS, etc.)
+    
+    Returns dict with calibration info or empty dict if not found.
+    """
+    calibration_data = {
+        'pointer_tip_rms_error_mm': None,
+        'wand_error_mm': None,
+        'optitrack_version': 'unknown',
+        'export_date': None
+    }
+    
+    # OptiTrack CSVs typically have metadata in first ~10 rows
+    # Format examples:
+    # "Wand Calibration Error:,0.82 mm"
+    # "Pointer Calibration RMS:,1.25 mm"
+    # "Export Version:,1.23"
+    # "Capture Date:,2025-01-15"
+    
+    for row in rows[:15]:  # Check first 15 rows for metadata
+        if len(row) < 2:
+            continue
+        
+        key = str(row[0]).strip().lower()
+        value = str(row[1]).strip() if len(row) > 1 else ''
+        
+        # Wand calibration error
+        if 'wand' in key and ('error' in key or 'calibration' in key):
+            # Extract numeric value (e.g., "0.82 mm" -> 0.82)
+            match = re.search(r'([\d.]+)', value)
+            if match:
+                calibration_data['wand_error_mm'] = float(match.group(1))
+        
+        # Pointer calibration RMS
+        elif 'pointer' in key and ('rms' in key or 'error' in key or 'calibration' in key):
+            match = re.search(r'([\d.]+)', value)
+            if match:
+                calibration_data['pointer_tip_rms_error_mm'] = float(match.group(1))
+        
+        # OptiTrack/Motive version
+        elif any(term in key for term in ['export version', 'motive version', 'optitrack version']):
+            calibration_data['optitrack_version'] = value.replace('mm', '').strip()
+        
+        # Capture/Export date
+        elif any(term in key for term in ['capture date', 'export date', 'date']):
+            calibration_data['export_date'] = value
+    
+    return calibration_data
+
 def parse_optitrack_csv(csv_path, schema):
     path = Path(csv_path)
     
@@ -86,6 +137,9 @@ def parse_optitrack_csv(csv_path, schema):
         for i, row in enumerate(reader):
             rows.append(row)
             if i >= 300: break
+
+    # Extract calibration metadata from header (Enhancement 1)
+    calibration_metadata = extract_optitrack_calibration_metadata(rows)
 
     # Find Header Row
     hdr_row_idx = None
@@ -221,6 +275,7 @@ def parse_optitrack_csv(csv_path, schema):
         "segments_missing_count": len(joints_missing),
         "segments_found_list": joints_found,
         "segments_missing_list": joints_missing,
+        "calibration": calibration_metadata,  # Enhancement 1: Added calibration data
         "data_quality": {
             "nan_position_percent": f"{nan_pos_pct:.2f}%",
             "nan_rotation_percent": f"{nan_rot_pct:.2f}%"

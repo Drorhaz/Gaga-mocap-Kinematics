@@ -1,11 +1,7 @@
-project_root: "."
-derivatives_dir: "derivatives"
-qc_dir: "qc"
-data_dir: "data"
-
-# Current CSV file to process (relative to data_dir)
-current_csv: "734/T1/734_T1_P1_R1_Take 2025-12-01 02.18.27 PM.csv"
-
-# Processing parameters
+current_csv: 734/T3/734_T3_P1_R1_Take 2025-12-30 04.12.54 PM_001.csv
+data_dir: data
+derivatives_dir: derivatives
 fs_target: 120.0
 min_run_seconds: 5.0
+project_root: .
+qc_dir: qc

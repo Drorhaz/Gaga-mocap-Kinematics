@@ -1,8 +1,8 @@
 {
     "run_id": "734_T1_P1_R1_Take 2025-12-01 02.18.27 PM",
     "identity": {
-        "timestamp": "2026-01-18 17:05",
-        "pipeline_version": "v2.6_biomechanical_guardrails"
+        "timestamp": "2026-01-23 20:59",
+        "pipeline_version": "v2.8_per_region_filtering"
     },
     "subject_metadata": {
         "mass_kg": null,
@@ -16,23 +16,32 @@
     },
     "filter_params": {
         "filter_type": "Winter Residual Analysis + Butterworth Low-pass (Zero-phase)",
-        "filter_method": "Winter Dynamic Cutoff Selection",
-        "filter_cutoff_hz": 8.0,
-        "filter_range_hz": [
-            1,
-            12
-        ],
+        "filter_method": "Per-Region Winter Cutoff Selection",
+        "filtering_mode": "per_region",
         "filter_order": 2,
-        "representative_column": "multi_signal_median(5_cols)",
         "quaternion_filtering": false,
-        "winter_analysis_failed": false,
         "expected_dance_range": "4-10 Hz",
-        "biomechanical_guardrails": {
-            "enabled": true,
-            "strategy": "multi_signal_with_guardrails",
-            "min_cutoff_trunk_hz": 6.0,
-            "min_cutoff_distal_hz": 8.0,
-            "use_trunk_global": false
+        "region_cutoffs": {
+            "trunk": 6.0,
+            "head": 7.0,
+            "upper_proximal": 8.0,
+            "upper_distal": 10.0,
+            "lower_proximal": 8.0,
+            "lower_distal": 10.0
+        },
+        "cutoff_range_hz": [
+            6.0,
+            10.0
+        ],
+        "n_regions": 6,
+        "fmax": 12,
+        "region_marker_counts": {
+            "lower_proximal": 6,
+            "lower_distal": 18,
+            "upper_distal": 24,
+            "upper_proximal": 18,
+            "trunk": 9,
+            "head": 6
         }
     }
 }
