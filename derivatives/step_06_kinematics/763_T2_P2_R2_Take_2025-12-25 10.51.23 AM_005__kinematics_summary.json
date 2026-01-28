@@ -8,11 +8,11 @@
         },
         "angular_accel": {
             "max": 49405.86,
-            "mean": 1567.88
+            "mean": 1568.29
         },
         "linear_accel": {
             "max": 43621.06,
-            "mean": 1995.71
+            "mean": 1996.86
         }
     },
     "signal_quality": {
@@ -21,7 +21,7 @@
         "max_quat_norm_error": 0.0
     },
     "effort_metrics": {
-        "total_path_length_mm": 61303.64,
+        "total_path_length_mm": 61308.14,
         "intensity_index": 0.289,
         "outlier_frame_count": 46
     },
@@ -60,25 +60,25 @@
         "note": "Global joint orientations in world space. Quaternions preserve computation integrity (no gimbal lock). Convert to Euler only for visualization if needed."
     },
     "step_06_euler_sequences_used": {
-        "RightShoulder": "YXY",
-        "LeftLeg": "ZXY",
-        "RightArm": "ZXY",
-        "RightLeg": "ZXY",
-        "LeftFoot": "ZXY",
-        "Spine": "ZXY",
-        "Hips": "ZXY",
-        "Head": "ZXY",
-        "LeftShoulder": "YXY",
-        "RightForeArm": "ZXY",
-        "Neck": "ZXY",
-        "LeftArm": "ZXY",
-        "RightHand": "ZXY",
-        "LeftUpLeg": "ZXY",
-        "LeftForeArm": "ZXY",
-        "Spine1": "ZXY",
-        "RightUpLeg": "ZXY",
         "RightFoot": "ZXY",
-        "LeftHand": "ZXY"
+        "RightForeArm": "ZXY",
+        "RightUpLeg": "ZXY",
+        "LeftLeg": "ZXY",
+        "RightShoulder": "YXY",
+        "Neck": "ZXY",
+        "RightHand": "ZXY",
+        "RightLeg": "ZXY",
+        "Spine1": "ZXY",
+        "LeftForeArm": "ZXY",
+        "LeftHand": "ZXY",
+        "Hips": "ZXY",
+        "LeftFoot": "ZXY",
+        "LeftUpLeg": "ZXY",
+        "Spine": "ZXY",
+        "LeftShoulder": "YXY",
+        "Head": "ZXY",
+        "RightArm": "ZXY",
+        "LeftArm": "ZXY"
     },
     "step_06_isb_compliant": true,
     "step_06_non_isb_joints": null,

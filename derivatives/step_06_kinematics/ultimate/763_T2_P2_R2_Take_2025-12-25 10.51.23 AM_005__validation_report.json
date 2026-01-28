@@ -1,0 +1,235 @@
+{
+  "run_id": "763_T2_P2_R2_Take_2025-12-25 10.51.23 AM_005",
+  "per_joint": {
+    "Hips": {
+      "geodesic_offset_std": 0.0,
+      "velocity_alignment_pct": 100.0,
+      "max_omega_deg_s": 455.72,
+      "mean_omega_deg_s": 91.66,
+      "median_omega_deg_s": 78.96,
+      "exceeded_omega_threshold": false
+    },
+    "Spine": {
+      "geodesic_offset_std": 0.0,
+      "velocity_alignment_pct": 100.0,
+      "max_omega_deg_s": 236.14,
+      "mean_omega_deg_s": 43.98,
+      "median_omega_deg_s": 37.41,
+      "exceeded_omega_threshold": false
+    },
+    "Spine1": {
+      "geodesic_offset_std": 0.0,
+      "velocity_alignment_pct": 100.0,
+      "max_omega_deg_s": 241.65,
+      "mean_omega_deg_s": 48.96,
+      "median_omega_deg_s": 43.77,
+      "exceeded_omega_threshold": false
+    },
+    "Neck": {
+      "geodesic_offset_std": 0.0,
+      "velocity_alignment_pct": 100.0,
+      "max_omega_deg_s": 271.17,
+      "mean_omega_deg_s": 75.02,
+      "median_omega_deg_s": 66.88,
+      "exceeded_omega_threshold": false
+    },
+    "Head": {
+      "geodesic_offset_std": 0.0,
+      "velocity_alignment_pct": 100.0,
+      "max_omega_deg_s": 272.09,
+      "mean_omega_deg_s": 75.0,
+      "median_omega_deg_s": 66.91,
+      "exceeded_omega_threshold": false
+    },
+    "LeftUpLeg": {
+      "geodesic_offset_std": 0.0,
+      "velocity_alignment_pct": 100.0,
+      "max_omega_deg_s": 535.37,
+      "mean_omega_deg_s": 85.01,
+      "median_omega_deg_s": 75.01,
+      "exceeded_omega_threshold": false
+    },
+    "LeftLeg": {
+      "geodesic_offset_std": 0.0,
+      "velocity_alignment_pct": 100.0,
+      "max_omega_deg_s": 1161.24,
+      "mean_omega_deg_s": 86.31,
+      "median_omega_deg_s": 55.72,
+      "exceeded_omega_threshold": false
+    },
+    "LeftFoot": {
+      "geodesic_offset_std": 0.0,
+      "velocity_alignment_pct": 100.0,
+      "max_omega_deg_s": 845.99,
+      "mean_omega_deg_s": 128.34,
+      "median_omega_deg_s": 102.53,
+      "exceeded_omega_threshold": false
+    },
+    "RightUpLeg": {
+      "geodesic_offset_std": 0.0,
+      "velocity_alignment_pct": 100.0,
+      "max_omega_deg_s": 526.34,
+      "mean_omega_deg_s": 91.86,
+      "median_omega_deg_s": 78.36,
+      "exceeded_omega_threshold": false
+    },
+    "RightLeg": {
+      "geodesic_offset_std": 0.0,
+      "velocity_alignment_pct": 100.0,
+      "max_omega_deg_s": 958.37,
+      "mean_omega_deg_s": 89.11,
+      "median_omega_deg_s": 56.76,
+      "exceeded_omega_threshold": false
+    },
+    "RightFoot": {
+      "geodesic_offset_std": 0.0,
+      "velocity_alignment_pct": 100.0,
+      "max_omega_deg_s": 710.66,
+      "mean_omega_deg_s": 116.04,
+      "median_omega_deg_s": 90.26,
+      "exceeded_omega_threshold": false
+    },
+    "LeftShoulder": {
+      "geodesic_offset_std": 0.0,
+      "velocity_alignment_pct": 100.0,
+      "max_omega_deg_s": 284.15,
+      "mean_omega_deg_s": 63.25,
+      "median_omega_deg_s": 58.91,
+      "exceeded_omega_threshold": false
+    },
+    "LeftArm": {
+      "geodesic_offset_std": 0.0,
+      "velocity_alignment_pct": 100.0,
+      "max_omega_deg_s": 446.82,
+      "mean_omega_deg_s": 110.78,
+      "median_omega_deg_s": 98.27,
+      "exceeded_omega_threshold": false
+    },
+    "LeftForeArm": {
+      "geodesic_offset_std": 0.0,
+      "velocity_alignment_pct": 100.0,
+      "max_omega_deg_s": 812.61,
+      "mean_omega_deg_s": 194.06,
+      "median_omega_deg_s": 171.24,
+      "exceeded_omega_threshold": false
+    },
+    "LeftHand": {
+      "geodesic_offset_std": 0.0,
+      "velocity_alignment_pct": 100.0,
+      "max_omega_deg_s": 1219.58,
+      "mean_omega_deg_s": 234.53,
+      "median_omega_deg_s": 186.15,
+      "exceeded_omega_threshold": false
+    },
+    "RightShoulder": {
+      "geodesic_offset_std": 0.0,
+      "velocity_alignment_pct": 100.0,
+      "max_omega_deg_s": 384.36,
+      "mean_omega_deg_s": 84.2,
+      "median_omega_deg_s": 78.08,
+      "exceeded_omega_threshold": false
+    },
+    "RightArm": {
+      "geodesic_offset_std": 0.0,
+      "velocity_alignment_pct": 100.0,
+      "max_omega_deg_s": 906.37,
+      "mean_omega_deg_s": 173.14,
+      "median_omega_deg_s": 159.68,
+      "exceeded_omega_threshold": false
+    },
+    "RightForeArm": {
+      "geodesic_offset_std": 0.0,
+      "velocity_alignment_pct": 100.0,
+      "max_omega_deg_s": 998.46,
+      "mean_omega_deg_s": 232.85,
+      "median_omega_deg_s": 201.61,
+      "exceeded_omega_threshold": false
+    },
+    "RightHand": {
+      "geodesic_offset_std": 0.0,
+      "velocity_alignment_pct": 100.0,
+      "max_omega_deg_s": 1315.13,
+      "mean_omega_deg_s": 293.74,
+      "median_omega_deg_s": 236.3,
+      "exceeded_omega_threshold": false
+    }
+  },
+  "per_segment_linear": {
+    "LeftUpLeg": {
+      "max_lin_acc_mm_s2": 6397.25,
+      "exceeded_lin_acc_threshold": false
+    },
+    "LeftArm": {
+      "max_lin_acc_mm_s2": 13751.07,
+      "exceeded_lin_acc_threshold": false
+    },
+    "RightArm": {
+      "max_lin_acc_mm_s2": 18604.7,
+      "exceeded_lin_acc_threshold": false
+    },
+    "Spine1": {
+      "max_lin_acc_mm_s2": 9200.33,
+      "exceeded_lin_acc_threshold": false
+    },
+    "LeftForeArm": {
+      "max_lin_acc_mm_s2": 35245.04,
+      "exceeded_lin_acc_threshold": true
+    },
+    "LeftFoot": {
+      "max_lin_acc_mm_s2": 36159.04,
+      "exceeded_lin_acc_threshold": true
+    },
+    "Neck": {
+      "max_lin_acc_mm_s2": 13100.87,
+      "exceeded_lin_acc_threshold": false
+    },
+    "Spine": {
+      "max_lin_acc_mm_s2": 2944.13,
+      "exceeded_lin_acc_threshold": false
+    },
+    "LeftHand": {
+      "max_lin_acc_mm_s2": 44415.7,
+      "exceeded_lin_acc_threshold": true
+    },
+    "RightFoot": {
+      "max_lin_acc_mm_s2": 35412.33,
+      "exceeded_lin_acc_threshold": true
+    },
+    "RightLeg": {
+      "max_lin_acc_mm_s2": 36407.94,
+      "exceeded_lin_acc_threshold": true
+    },
+    "Hips": {
+      "max_lin_acc_mm_s2": 0.0,
+      "exceeded_lin_acc_threshold": false
+    },
+    "RightForeArm": {
+      "max_lin_acc_mm_s2": 37305.51,
+      "exceeded_lin_acc_threshold": true
+    },
+    "RightHand": {
+      "max_lin_acc_mm_s2": 48837.84,
+      "exceeded_lin_acc_threshold": true
+    },
+    "RightShoulder": {
+      "max_lin_acc_mm_s2": 12251.59,
+      "exceeded_lin_acc_threshold": false
+    },
+    "LeftLeg": {
+      "max_lin_acc_mm_s2": 44373.09,
+      "exceeded_lin_acc_threshold": true
+    },
+    "RightUpLeg": {
+      "max_lin_acc_mm_s2": 6389.15,
+      "exceeded_lin_acc_threshold": false
+    },
+    "Head": {
+      "max_lin_acc_mm_s2": 13995.46,
+      "exceeded_lin_acc_threshold": false
+    },
+    "LeftShoulder": {
+      "max_lin_acc_mm_s2": 12112.95,
+      "exceeded_lin_acc_threshold": false
+    }
+  }
+}

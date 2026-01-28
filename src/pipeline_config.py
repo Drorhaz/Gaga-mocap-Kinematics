@@ -181,3 +181,7 @@ for yaml_key, cfg_key in _UPPERCASE_ALIASES.items():
 
 # THRESH with uppercase keys for qc.py and any code using CONFIG["THRESH"]["BONE_CV_ALERT"] etc.
 CONFIG["THRESH"] = _build_thresh(CONFIG.get("thresh") or {})
+
+# step_06: enforce_cleaning (surgical repair when Critical; false = audit only)
+_step06 = CONFIG.get("step_06") if isinstance(CONFIG.get("step_06"), dict) else {}
+CONFIG["ENFORCE_CLEANING"] = _step06.get("enforce_cleaning", False)

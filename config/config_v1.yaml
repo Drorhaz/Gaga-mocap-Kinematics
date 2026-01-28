@@ -44,6 +44,8 @@ max_gap_pos_sec: 1.0
 max_gap_quat_sec: 0.25
 
 # --- Rotation & kinematics (step 06) ---
+step_06:
+  enforce_cleaning: false   # true = surgical repair (SLERP/PCHIP) when Critical; false = audit only
 shortest_rotation: true
 rotation_rep: rotvec_relative_reference
 omega_method: quat_log

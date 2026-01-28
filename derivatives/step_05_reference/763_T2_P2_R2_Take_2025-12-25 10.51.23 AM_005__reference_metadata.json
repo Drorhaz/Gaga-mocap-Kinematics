@@ -24,12 +24,12 @@
         2.4,
         3.4
     ],
-    "ref_quality_score": 0.9173383669868955,
+    "ref_quality_score": 0.9173383755113277,
     "confidence_level": "HIGH",
     "ref_is_fallback": false,
     "detection_method": "auto_stable_window",
-    "mean_motion": 0.059516324850987616,
+    "mean_motion": 0.059516809855698884,
     "max_motion": 0.9951204534136195,
-    "variance_score": 16.5323266026209,
+    "variance_score": 16.532324897734465,
     "variance_threshold": 100.0
 }
