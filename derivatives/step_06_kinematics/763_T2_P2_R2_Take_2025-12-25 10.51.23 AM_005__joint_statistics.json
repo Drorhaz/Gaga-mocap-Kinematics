@@ -1,0 +1,116 @@
+{
+    "Hips": {
+        "max_angular_velocity": 456.51,
+        "mean_angular_velocity": 91.86,
+        "p95_angular_velocity": 211.77,
+        "rom": 1703.87
+    },
+    "Spine": {
+        "max_angular_velocity": 240.09,
+        "mean_angular_velocity": 44.11,
+        "p95_angular_velocity": 107.64,
+        "rom": 55.14
+    },
+    "Spine1": {
+        "max_angular_velocity": 245.23,
+        "mean_angular_velocity": 49.12,
+        "p95_angular_velocity": 110.04,
+        "rom": 54.78
+    },
+    "Neck": {
+        "max_angular_velocity": 275.03,
+        "mean_angular_velocity": 75.25,
+        "p95_angular_velocity": 165.95,
+        "rom": 65.4
+    },
+    "Head": {
+        "max_angular_velocity": 275.51,
+        "mean_angular_velocity": 75.23,
+        "p95_angular_velocity": 166.02,
+        "rom": 65.4
+    },
+    "LeftUpLeg": {
+        "max_angular_velocity": 588.42,
+        "mean_angular_velocity": 85.39,
+        "p95_angular_velocity": 191.29,
+        "rom": 162.64
+    },
+    "LeftLeg": {
+        "max_angular_velocity": 1237.51,
+        "mean_angular_velocity": 86.41,
+        "p95_angular_velocity": 277.85,
+        "rom": 159.09
+    },
+    "LeftFoot": {
+        "max_angular_velocity": 931.57,
+        "mean_angular_velocity": 129.96,
+        "p95_angular_velocity": 335.78,
+        "rom": 143.05
+    },
+    "RightUpLeg": {
+        "max_angular_velocity": 550.99,
+        "mean_angular_velocity": 92.26,
+        "p95_angular_velocity": 216.38,
+        "rom": 178.77
+    },
+    "RightLeg": {
+        "max_angular_velocity": 996.07,
+        "mean_angular_velocity": 89.6,
+        "p95_angular_velocity": 301.28,
+        "rom": 150.37
+    },
+    "RightFoot": {
+        "max_angular_velocity": 749.03,
+        "mean_angular_velocity": 117.78,
+        "p95_angular_velocity": 314.41,
+        "rom": 111.88
+    },
+    "LeftShoulder": {
+        "max_angular_velocity": 291.69,
+        "mean_angular_velocity": 63.64,
+        "p95_angular_velocity": 131.66,
+        "rom": 56.51
+    },
+    "LeftArm": {
+        "max_angular_velocity": 449.41,
+        "mean_angular_velocity": 111.58,
+        "p95_angular_velocity": 251.15,
+        "rom": 95.34
+    },
+    "LeftForeArm": {
+        "max_angular_velocity": 854.22,
+        "mean_angular_velocity": 195.87,
+        "p95_angular_velocity": 457.73,
+        "rom": 142.54
+    },
+    "LeftHand": {
+        "max_angular_velocity": 1257.7,
+        "mean_angular_velocity": 237.26,
+        "p95_angular_velocity": 615.4,
+        "rom": 144.0
+    },
+    "RightShoulder": {
+        "max_angular_velocity": 388.27,
+        "mean_angular_velocity": 84.66,
+        "p95_angular_velocity": 175.75,
+        "rom": 63.59
+    },
+    "RightArm": {
+        "max_angular_velocity": 924.84,
+        "mean_angular_velocity": 174.01,
+        "p95_angular_velocity": 365.51,
+        "rom": 123.98
+    },
+    "RightForeArm": {
+        "max_angular_velocity": 1090.49,
+        "mean_angular_velocity": 235.43,
+        "p95_angular_velocity": 553.35,
+        "rom": 150.48
+    },
+    "RightHand": {
+        "max_angular_velocity": 1349.4,
+        "mean_angular_velocity": 296.5,
+        "p95_angular_velocity": 780.88,
+        "rom": 161.1
+    }
+}

@@ -34,6 +34,7 @@ PIPELINE_SETTINGS = {
     "QUAT_RESAMPLE_METHOD": "slerp",
 
     "EXCLUDE_GROUPS": ["Fingers", "Toes"],
+    "exclude_fingers": False,  # Exclude finger and toe segments from preprocessing
 
     "JOINTS_VIZ": ["Hips", "Spine", "Spine1", "Neck", "Head", "LeftArm", "RightArm", "LeftUpLeg", "RightUpLeg"],
     "REQUIRED_JOINTS": ["Hips", "Spine", "Head"],
