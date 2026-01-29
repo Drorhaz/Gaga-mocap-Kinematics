@@ -46,13 +46,15 @@ max_gap_quat_sec: 0.25
 # --- Rotation & kinematics (step 06) ---
 step_06:
   enforce_cleaning: false   # true = surgical repair (SLERP/PCHIP) when Critical; false = audit only
+  # Surgical repair: SLERP on quaternions / PCHIP on positions at critical frames only
+  # Critical thresholds: rotation_mag > 180°, omega > 1500 deg/s, alpha > 80000 deg/s², lin_vel > 7000 mm/s, lin_acc > 150000 mm/s²
 shortest_rotation: true
 rotation_rep: rotvec_relative_reference
-omega_method: quat_log
-omega_frame: child_body
+omega_method: quat_log          # quat_log | 5pt | central - quaternion logarithm is theoretically superior
+omega_frame: child_body         # child_body (local) | global - body frame recommended for joint analysis
 deriv_method: savgol
 sg_targets: derivatives_only
-sg_window_sec: 0.175
+sg_window_sec: 0.175            # ~175ms window at 120Hz = 21 frames
 sg_polyorder: 3
 
 # --- Output flags ---

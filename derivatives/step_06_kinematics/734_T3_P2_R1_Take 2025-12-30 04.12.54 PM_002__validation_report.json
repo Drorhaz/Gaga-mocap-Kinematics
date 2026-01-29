@@ -156,13 +156,45 @@
     }
   },
   "per_segment_linear": {
+    "Spine": {
+      "max_lin_acc_mm_s2": 2534.84,
+      "exceeded_lin_acc_threshold": false
+    },
+    "RightLeg": {
+      "max_lin_acc_mm_s2": 23360.22,
+      "exceeded_lin_acc_threshold": true
+    },
+    "LeftArm": {
+      "max_lin_acc_mm_s2": 11910.6,
+      "exceeded_lin_acc_threshold": false
+    },
+    "LeftShoulder": {
+      "max_lin_acc_mm_s2": 9516.67,
+      "exceeded_lin_acc_threshold": false
+    },
+    "LeftUpLeg": {
+      "max_lin_acc_mm_s2": 3615.59,
+      "exceeded_lin_acc_threshold": false
+    },
     "RightForeArm": {
       "max_lin_acc_mm_s2": 23199.7,
       "exceeded_lin_acc_threshold": true
     },
-    "Spine": {
-      "max_lin_acc_mm_s2": 2534.84,
+    "LeftLeg": {
+      "max_lin_acc_mm_s2": 39096.52,
+      "exceeded_lin_acc_threshold": true
+    },
+    "LeftHand": {
+      "max_lin_acc_mm_s2": 30375.07,
+      "exceeded_lin_acc_threshold": true
+    },
+    "Head": {
+      "max_lin_acc_mm_s2": 11463.77,
       "exceeded_lin_acc_threshold": false
+    },
+    "LeftForeArm": {
+      "max_lin_acc_mm_s2": 25159.46,
+      "exceeded_lin_acc_threshold": true
     },
     "RightShoulder": {
       "max_lin_acc_mm_s2": 9104.35,
@@ -172,64 +204,32 @@
       "max_lin_acc_mm_s2": 29372.72,
       "exceeded_lin_acc_threshold": true
     },
-    "RightUpLeg": {
-      "max_lin_acc_mm_s2": 3615.59,
+    "LeftFoot": {
+      "max_lin_acc_mm_s2": 23428.46,
+      "exceeded_lin_acc_threshold": true
+    },
+    "Spine1": {
+      "max_lin_acc_mm_s2": 7164.33,
       "exceeded_lin_acc_threshold": false
     },
-    "Hips": {
-      "max_lin_acc_mm_s2": 0.0,
-      "exceeded_lin_acc_threshold": false
+    "RightHand": {
+      "max_lin_acc_mm_s2": 28780.03,
+      "exceeded_lin_acc_threshold": true
     },
-    "LeftUpLeg": {
-      "max_lin_acc_mm_s2": 3615.59,
+    "Neck": {
+      "max_lin_acc_mm_s2": 9904.82,
       "exceeded_lin_acc_threshold": false
     },
     "RightArm": {
       "max_lin_acc_mm_s2": 10898.39,
       "exceeded_lin_acc_threshold": false
     },
-    "LeftShoulder": {
-      "max_lin_acc_mm_s2": 9516.67,
+    "RightUpLeg": {
+      "max_lin_acc_mm_s2": 3615.59,
       "exceeded_lin_acc_threshold": false
     },
-    "Spine1": {
-      "max_lin_acc_mm_s2": 7164.33,
-      "exceeded_lin_acc_threshold": false
-    },
-    "LeftArm": {
-      "max_lin_acc_mm_s2": 11910.6,
-      "exceeded_lin_acc_threshold": false
-    },
-    "LeftLeg": {
-      "max_lin_acc_mm_s2": 39096.52,
-      "exceeded_lin_acc_threshold": true
-    },
-    "RightHand": {
-      "max_lin_acc_mm_s2": 28780.03,
-      "exceeded_lin_acc_threshold": true
-    },
-    "LeftHand": {
-      "max_lin_acc_mm_s2": 30375.07,
-      "exceeded_lin_acc_threshold": true
-    },
-    "LeftFoot": {
-      "max_lin_acc_mm_s2": 23428.46,
-      "exceeded_lin_acc_threshold": true
-    },
-    "LeftForeArm": {
-      "max_lin_acc_mm_s2": 25159.46,
-      "exceeded_lin_acc_threshold": true
-    },
-    "Head": {
-      "max_lin_acc_mm_s2": 11463.77,
-      "exceeded_lin_acc_threshold": false
-    },
-    "RightLeg": {
-      "max_lin_acc_mm_s2": 23360.22,
-      "exceeded_lin_acc_threshold": true
-    },
-    "Neck": {
-      "max_lin_acc_mm_s2": 9904.82,
+    "Hips": {
+      "max_lin_acc_mm_s2": 0.0,
       "exceeded_lin_acc_threshold": false
     }
   },
@@ -1222,5 +1222,193 @@
         "total_frames": 16503
       }
     ]
+  },
+  "path_length_m": {
+    "Hips": 0.0,
+    "Spine": 0.0,
+    "Spine1": 0.0,
+    "Neck": 0.0,
+    "Head": 0.0,
+    "LeftUpLeg": 0.0,
+    "LeftLeg": 0.0,
+    "LeftFoot": 0.0,
+    "RightUpLeg": 0.0,
+    "RightLeg": 0.0,
+    "RightFoot": 0.0,
+    "LeftShoulder": 0.0,
+    "LeftArm": 0.0,
+    "LeftForeArm": 0.0,
+    "LeftHand": 0.0,
+    "RightShoulder": 0.0,
+    "RightArm": 0.0,
+    "RightForeArm": 0.0,
+    "RightHand": 0.0
+  },
+  "bilateral_symmetry": {
+    "path_length_upper_arm": {
+      "left_value": 0.0,
+      "right_value": 0.0,
+      "absolute_diff": 0.0,
+      "percent_diff": 0.0,
+      "symmetry_index": 1.0,
+      "metric_name": "path_length_upper_arm"
+    },
+    "path_length_forearm": {
+      "left_value": 0.0,
+      "right_value": 0.0,
+      "absolute_diff": 0.0,
+      "percent_diff": 0.0,
+      "symmetry_index": 1.0,
+      "metric_name": "path_length_forearm"
+    },
+    "path_length_hand": {
+      "left_value": 0.0,
+      "right_value": 0.0,
+      "absolute_diff": 0.0,
+      "percent_diff": 0.0,
+      "symmetry_index": 1.0,
+      "metric_name": "path_length_hand"
+    },
+    "path_length_thigh": {
+      "left_value": 0.0,
+      "right_value": 0.0,
+      "absolute_diff": 0.0,
+      "percent_diff": 0.0,
+      "symmetry_index": 1.0,
+      "metric_name": "path_length_thigh"
+    },
+    "path_length_shin": {
+      "left_value": 0.0,
+      "right_value": 0.0,
+      "absolute_diff": 0.0,
+      "percent_diff": 0.0,
+      "symmetry_index": 1.0,
+      "metric_name": "path_length_shin"
+    },
+    "path_length_foot": {
+      "left_value": 0.0,
+      "right_value": 0.0,
+      "absolute_diff": 0.0,
+      "percent_diff": 0.0,
+      "symmetry_index": 1.0,
+      "metric_name": "path_length_foot"
+    },
+    "max_omega_upper_arm": {
+      "left_value": 719.1342382391022,
+      "right_value": 792.1865807437645,
+      "absolute_diff": 73.0523425046623,
+      "percent_diff": 9.22160817670949,
+      "symmetry_index": 0.907783918232905,
+      "metric_name": "max_omega_upper_arm"
+    },
+    "max_omega_forearm": {
+      "left_value": 794.8939457408092,
+      "right_value": 840.8258249597548,
+      "absolute_diff": 45.931879218945596,
+      "percent_diff": 5.462710332564307,
+      "symmetry_index": 0.945372896674357,
+      "metric_name": "max_omega_forearm"
+    },
+    "max_omega_hand": {
+      "left_value": 1603.3331093113504,
+      "right_value": 1195.2992507819902,
+      "absolute_diff": 408.03385852936026,
+      "percent_diff": 25.449100761389214,
+      "symmetry_index": 0.7455089923861078,
+      "metric_name": "max_omega_hand"
+    },
+    "max_omega_thigh": {
+      "left_value": 433.15040690770684,
+      "right_value": 340.9649646535743,
+      "absolute_diff": 92.18544225413251,
+      "percent_diff": 21.28254776724124,
+      "symmetry_index": 0.7871745223275876,
+      "metric_name": "max_omega_thigh"
+    },
+    "max_omega_shin": {
+      "left_value": 808.0940539503806,
+      "right_value": 539.0658281242842,
+      "absolute_diff": 269.02822582609645,
+      "percent_diff": 33.291697236348625,
+      "symmetry_index": 0.6670830276365137,
+      "metric_name": "max_omega_shin"
+    },
+    "max_omega_foot": {
+      "left_value": 474.9658638021344,
+      "right_value": 444.04081675074326,
+      "absolute_diff": 30.925047051391118,
+      "percent_diff": 6.511004139083594,
+      "symmetry_index": 0.934889958609164,
+      "metric_name": "max_omega_foot"
+    },
+    "max_lin_acc_upper_arm": {
+      "left_value": 11910.596657395721,
+      "right_value": 10898.38808088826,
+      "absolute_diff": 1012.2085765074607,
+      "percent_diff": 8.498386819932684,
+      "symmetry_index": 0.9150161318006732,
+      "metric_name": "max_lin_acc_upper_arm"
+    },
+    "max_lin_acc_forearm": {
+      "left_value": 25159.45754950041,
+      "right_value": 23199.704575666034,
+      "absolute_diff": 1959.7529738343765,
+      "percent_diff": 7.789329201468778,
+      "symmetry_index": 0.9221067079853122,
+      "metric_name": "max_lin_acc_forearm"
+    },
+    "max_lin_acc_hand": {
+      "left_value": 30375.065989423074,
+      "right_value": 28780.031628191722,
+      "absolute_diff": 1595.0343612313518,
+      "percent_diff": 5.251130521944413,
+      "symmetry_index": 0.9474886947805559,
+      "metric_name": "max_lin_acc_hand"
+    },
+    "max_lin_acc_thigh": {
+      "left_value": 3615.592553309388,
+      "right_value": 3615.592075418365,
+      "absolute_diff": 0.00047789102336537326,
+      "percent_diff": 1.321750214713643e-05,
+      "symmetry_index": 0.9999998678249785,
+      "metric_name": "max_lin_acc_thigh"
+    },
+    "max_lin_acc_shin": {
+      "left_value": 39096.51810987866,
+      "right_value": 23360.222351609416,
+      "absolute_diff": 15736.295758269247,
+      "percent_diff": 40.24986499831835,
+      "symmetry_index": 0.5975013500168165,
+      "metric_name": "max_lin_acc_shin"
+    },
+    "max_lin_acc_foot": {
+      "left_value": 23428.458484869698,
+      "right_value": 29372.71710436959,
+      "absolute_diff": 5944.258619499891,
+      "percent_diff": 20.237346781294544,
+      "symmetry_index": 0.7976265321870546,
+      "metric_name": "max_lin_acc_foot"
+    }
+  },
+  "intensity_index_m_per_s": {
+    "Hips": 0.0,
+    "Spine": 0.0,
+    "Spine1": 0.0,
+    "Neck": 0.0,
+    "Head": 0.0,
+    "LeftUpLeg": 0.0,
+    "LeftLeg": 0.0,
+    "LeftFoot": 0.0,
+    "RightUpLeg": 0.0,
+    "RightLeg": 0.0,
+    "RightFoot": 0.0,
+    "LeftShoulder": 0.0,
+    "LeftArm": 0.0,
+    "LeftForeArm": 0.0,
+    "LeftHand": 0.0,
+    "RightShoulder": 0.0,
+    "RightArm": 0.0,
+    "RightForeArm": 0.0,
+    "RightHand": 0.0
   }
 }
