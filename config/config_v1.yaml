@@ -3,7 +3,7 @@
 # =============================================================================
 
 # --- Paths & run ---
-current_csv: 763\T2\763_T2_P2_R2_Take_2025-12-25 10.51.23 AM_005.csv
+current_csv: 734\T3\734_T3_P2_R1_Take 2025-12-30 04.12.54 PM_002.csv
 data_dir: data
 derivatives_dir: derivatives
 qc_dir: qc
