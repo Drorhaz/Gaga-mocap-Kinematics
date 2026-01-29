@@ -1,5 +1,6 @@
 {
   "run_id": "763_T2_P2_R2_Take_2025-12-25 10.51.23 AM_005",
+  "total_frames": 17262,
   "per_joint": {
     "Hips": {
       "geodesic_offset_std": 0.0,
@@ -155,48 +156,28 @@
     }
   },
   "per_segment_linear": {
-    "LeftUpLeg": {
-      "max_lin_acc_mm_s2": 6397.25,
+    "Spine": {
+      "max_lin_acc_mm_s2": 2944.13,
       "exceeded_lin_acc_threshold": false
     },
-    "LeftArm": {
-      "max_lin_acc_mm_s2": 13751.07,
-      "exceeded_lin_acc_threshold": false
-    },
-    "RightArm": {
-      "max_lin_acc_mm_s2": 18604.7,
+    "RightShoulder": {
+      "max_lin_acc_mm_s2": 12251.59,
       "exceeded_lin_acc_threshold": false
     },
     "Spine1": {
       "max_lin_acc_mm_s2": 9200.33,
       "exceeded_lin_acc_threshold": false
     },
-    "LeftForeArm": {
-      "max_lin_acc_mm_s2": 35245.04,
-      "exceeded_lin_acc_threshold": true
-    },
-    "LeftFoot": {
-      "max_lin_acc_mm_s2": 36159.04,
-      "exceeded_lin_acc_threshold": true
+    "LeftArm": {
+      "max_lin_acc_mm_s2": 13751.07,
+      "exceeded_lin_acc_threshold": false
     },
     "Neck": {
       "max_lin_acc_mm_s2": 13100.87,
       "exceeded_lin_acc_threshold": false
     },
-    "Spine": {
-      "max_lin_acc_mm_s2": 2944.13,
-      "exceeded_lin_acc_threshold": false
-    },
-    "LeftHand": {
-      "max_lin_acc_mm_s2": 44415.7,
-      "exceeded_lin_acc_threshold": true
-    },
-    "RightFoot": {
-      "max_lin_acc_mm_s2": 35412.33,
-      "exceeded_lin_acc_threshold": true
-    },
-    "RightLeg": {
-      "max_lin_acc_mm_s2": 36407.94,
+    "LeftLeg": {
+      "max_lin_acc_mm_s2": 44373.09,
       "exceeded_lin_acc_threshold": true
     },
     "Hips": {
@@ -207,17 +188,33 @@
       "max_lin_acc_mm_s2": 37305.51,
       "exceeded_lin_acc_threshold": true
     },
-    "RightHand": {
-      "max_lin_acc_mm_s2": 48837.84,
-      "exceeded_lin_acc_threshold": true
-    },
-    "RightShoulder": {
-      "max_lin_acc_mm_s2": 12251.59,
+    "LeftShoulder": {
+      "max_lin_acc_mm_s2": 12112.95,
       "exceeded_lin_acc_threshold": false
     },
-    "LeftLeg": {
-      "max_lin_acc_mm_s2": 44373.09,
+    "LeftForeArm": {
+      "max_lin_acc_mm_s2": 35245.04,
       "exceeded_lin_acc_threshold": true
+    },
+    "RightLeg": {
+      "max_lin_acc_mm_s2": 36407.94,
+      "exceeded_lin_acc_threshold": true
+    },
+    "LeftHand": {
+      "max_lin_acc_mm_s2": 44415.7,
+      "exceeded_lin_acc_threshold": true
+    },
+    "RightArm": {
+      "max_lin_acc_mm_s2": 18604.7,
+      "exceeded_lin_acc_threshold": false
+    },
+    "LeftFoot": {
+      "max_lin_acc_mm_s2": 36159.04,
+      "exceeded_lin_acc_threshold": true
+    },
+    "LeftUpLeg": {
+      "max_lin_acc_mm_s2": 6397.25,
+      "exceeded_lin_acc_threshold": false
     },
     "RightUpLeg": {
       "max_lin_acc_mm_s2": 6389.15,
@@ -227,9 +224,1003 @@
       "max_lin_acc_mm_s2": 13995.46,
       "exceeded_lin_acc_threshold": false
     },
-    "LeftShoulder": {
-      "max_lin_acc_mm_s2": 12112.95,
-      "exceeded_lin_acc_threshold": false
+    "RightHand": {
+      "max_lin_acc_mm_s2": 48837.84,
+      "exceeded_lin_acc_threshold": true
+    },
+    "RightFoot": {
+      "max_lin_acc_mm_s2": 35412.33,
+      "exceeded_lin_acc_threshold": true
     }
+  },
+  "outlier_validation": {
+    "total_frames": 17262,
+    "thresholds": {
+      "rotation_mag_deg": {
+        "WARNING": 140.0,
+        "ALERT": 160.0,
+        "CRITICAL": 180.0
+      },
+      "angular_velocity_deg_s": {
+        "WARNING": 800.0,
+        "ALERT": 1200.0,
+        "CRITICAL": 1500.0
+      },
+      "angular_acceleration_deg_s2": {
+        "WARNING": 35000.0,
+        "ALERT": 50000.0,
+        "CRITICAL": 80000.0
+      },
+      "linear_velocity_mm_s": {
+        "WARNING": 3000.0,
+        "ALERT": 5000.0,
+        "CRITICAL": 7000.0
+      },
+      "linear_acceleration_mm_s2": {
+        "WARNING": 60000.0,
+        "ALERT": 100000.0,
+        "CRITICAL": 150000.0
+      }
+    },
+    "rotation_mag_deg": [
+      {
+        "joint": "Hips",
+        "n_frames_WARNING": 1222,
+        "n_frames_ALERT": 618,
+        "n_frames_CRITICAL": 0,
+        "pct_WARNING": 7.08,
+        "pct_ALERT": 3.58,
+        "pct_CRITICAL": 0.0,
+        "total_frames": 17262
+      },
+      {
+        "joint": "Spine",
+        "n_frames_WARNING": 0,
+        "n_frames_ALERT": 0,
+        "n_frames_CRITICAL": 0,
+        "pct_WARNING": 0.0,
+        "pct_ALERT": 0.0,
+        "pct_CRITICAL": 0.0,
+        "total_frames": 17262
+      },
+      {
+        "joint": "Spine1",
+        "n_frames_WARNING": 0,
+        "n_frames_ALERT": 0,
+        "n_frames_CRITICAL": 0,
+        "pct_WARNING": 0.0,
+        "pct_ALERT": 0.0,
+        "pct_CRITICAL": 0.0,
+        "total_frames": 17262
+      },
+      {
+        "joint": "Neck",
+        "n_frames_WARNING": 0,
+        "n_frames_ALERT": 0,
+        "n_frames_CRITICAL": 0,
+        "pct_WARNING": 0.0,
+        "pct_ALERT": 0.0,
+        "pct_CRITICAL": 0.0,
+        "total_frames": 17262
+      },
+      {
+        "joint": "Head",
+        "n_frames_WARNING": 0,
+        "n_frames_ALERT": 0,
+        "n_frames_CRITICAL": 0,
+        "pct_WARNING": 0.0,
+        "pct_ALERT": 0.0,
+        "pct_CRITICAL": 0.0,
+        "total_frames": 17262
+      },
+      {
+        "joint": "LeftUpLeg",
+        "n_frames_WARNING": 0,
+        "n_frames_ALERT": 0,
+        "n_frames_CRITICAL": 0,
+        "pct_WARNING": 0.0,
+        "pct_ALERT": 0.0,
+        "pct_CRITICAL": 0.0,
+        "total_frames": 17262
+      },
+      {
+        "joint": "LeftLeg",
+        "n_frames_WARNING": 0,
+        "n_frames_ALERT": 0,
+        "n_frames_CRITICAL": 0,
+        "pct_WARNING": 0.0,
+        "pct_ALERT": 0.0,
+        "pct_CRITICAL": 0.0,
+        "total_frames": 17262
+      },
+      {
+        "joint": "LeftFoot",
+        "n_frames_WARNING": 0,
+        "n_frames_ALERT": 0,
+        "n_frames_CRITICAL": 0,
+        "pct_WARNING": 0.0,
+        "pct_ALERT": 0.0,
+        "pct_CRITICAL": 0.0,
+        "total_frames": 17262
+      },
+      {
+        "joint": "RightUpLeg",
+        "n_frames_WARNING": 24,
+        "n_frames_ALERT": 0,
+        "n_frames_CRITICAL": 0,
+        "pct_WARNING": 0.14,
+        "pct_ALERT": 0.0,
+        "pct_CRITICAL": 0.0,
+        "total_frames": 17262
+      },
+      {
+        "joint": "RightLeg",
+        "n_frames_WARNING": 11,
+        "n_frames_ALERT": 0,
+        "n_frames_CRITICAL": 0,
+        "pct_WARNING": 0.06,
+        "pct_ALERT": 0.0,
+        "pct_CRITICAL": 0.0,
+        "total_frames": 17262
+      },
+      {
+        "joint": "RightFoot",
+        "n_frames_WARNING": 0,
+        "n_frames_ALERT": 0,
+        "n_frames_CRITICAL": 0,
+        "pct_WARNING": 0.0,
+        "pct_ALERT": 0.0,
+        "pct_CRITICAL": 0.0,
+        "total_frames": 17262
+      },
+      {
+        "joint": "LeftShoulder",
+        "n_frames_WARNING": 0,
+        "n_frames_ALERT": 0,
+        "n_frames_CRITICAL": 0,
+        "pct_WARNING": 0.0,
+        "pct_ALERT": 0.0,
+        "pct_CRITICAL": 0.0,
+        "total_frames": 17262
+      },
+      {
+        "joint": "LeftArm",
+        "n_frames_WARNING": 0,
+        "n_frames_ALERT": 0,
+        "n_frames_CRITICAL": 0,
+        "pct_WARNING": 0.0,
+        "pct_ALERT": 0.0,
+        "pct_CRITICAL": 0.0,
+        "total_frames": 17262
+      },
+      {
+        "joint": "LeftForeArm",
+        "n_frames_WARNING": 0,
+        "n_frames_ALERT": 0,
+        "n_frames_CRITICAL": 0,
+        "pct_WARNING": 0.0,
+        "pct_ALERT": 0.0,
+        "pct_CRITICAL": 0.0,
+        "total_frames": 17262
+      },
+      {
+        "joint": "LeftHand",
+        "n_frames_WARNING": 0,
+        "n_frames_ALERT": 0,
+        "n_frames_CRITICAL": 0,
+        "pct_WARNING": 0.0,
+        "pct_ALERT": 0.0,
+        "pct_CRITICAL": 0.0,
+        "total_frames": 17262
+      },
+      {
+        "joint": "RightShoulder",
+        "n_frames_WARNING": 0,
+        "n_frames_ALERT": 0,
+        "n_frames_CRITICAL": 0,
+        "pct_WARNING": 0.0,
+        "pct_ALERT": 0.0,
+        "pct_CRITICAL": 0.0,
+        "total_frames": 17262
+      },
+      {
+        "joint": "RightArm",
+        "n_frames_WARNING": 0,
+        "n_frames_ALERT": 0,
+        "n_frames_CRITICAL": 0,
+        "pct_WARNING": 0.0,
+        "pct_ALERT": 0.0,
+        "pct_CRITICAL": 0.0,
+        "total_frames": 17262
+      },
+      {
+        "joint": "RightForeArm",
+        "n_frames_WARNING": 0,
+        "n_frames_ALERT": 0,
+        "n_frames_CRITICAL": 0,
+        "pct_WARNING": 0.0,
+        "pct_ALERT": 0.0,
+        "pct_CRITICAL": 0.0,
+        "total_frames": 17262
+      },
+      {
+        "joint": "RightHand",
+        "n_frames_WARNING": 0,
+        "n_frames_ALERT": 0,
+        "n_frames_CRITICAL": 0,
+        "pct_WARNING": 0.0,
+        "pct_ALERT": 0.0,
+        "pct_CRITICAL": 0.0,
+        "total_frames": 17262
+      }
+    ],
+    "angular_velocity_deg_s": [
+      {
+        "joint": "Hips",
+        "n_frames_WARNING": 0,
+        "n_frames_ALERT": 0,
+        "n_frames_CRITICAL": 0,
+        "pct_WARNING": 0.0,
+        "pct_ALERT": 0.0,
+        "pct_CRITICAL": 0.0,
+        "total_frames": 17262
+      },
+      {
+        "joint": "Spine",
+        "n_frames_WARNING": 0,
+        "n_frames_ALERT": 0,
+        "n_frames_CRITICAL": 0,
+        "pct_WARNING": 0.0,
+        "pct_ALERT": 0.0,
+        "pct_CRITICAL": 0.0,
+        "total_frames": 17262
+      },
+      {
+        "joint": "Spine1",
+        "n_frames_WARNING": 0,
+        "n_frames_ALERT": 0,
+        "n_frames_CRITICAL": 0,
+        "pct_WARNING": 0.0,
+        "pct_ALERT": 0.0,
+        "pct_CRITICAL": 0.0,
+        "total_frames": 17262
+      },
+      {
+        "joint": "Neck",
+        "n_frames_WARNING": 0,
+        "n_frames_ALERT": 0,
+        "n_frames_CRITICAL": 0,
+        "pct_WARNING": 0.0,
+        "pct_ALERT": 0.0,
+        "pct_CRITICAL": 0.0,
+        "total_frames": 17262
+      },
+      {
+        "joint": "Head",
+        "n_frames_WARNING": 0,
+        "n_frames_ALERT": 0,
+        "n_frames_CRITICAL": 0,
+        "pct_WARNING": 0.0,
+        "pct_ALERT": 0.0,
+        "pct_CRITICAL": 0.0,
+        "total_frames": 17262
+      },
+      {
+        "joint": "LeftUpLeg",
+        "n_frames_WARNING": 0,
+        "n_frames_ALERT": 0,
+        "n_frames_CRITICAL": 0,
+        "pct_WARNING": 0.0,
+        "pct_ALERT": 0.0,
+        "pct_CRITICAL": 0.0,
+        "total_frames": 17262
+      },
+      {
+        "joint": "LeftLeg",
+        "n_frames_WARNING": 29,
+        "n_frames_ALERT": 0,
+        "n_frames_CRITICAL": 0,
+        "pct_WARNING": 0.17,
+        "pct_ALERT": 0.0,
+        "pct_CRITICAL": 0.0,
+        "total_frames": 17262
+      },
+      {
+        "joint": "LeftFoot",
+        "n_frames_WARNING": 7,
+        "n_frames_ALERT": 0,
+        "n_frames_CRITICAL": 0,
+        "pct_WARNING": 0.04,
+        "pct_ALERT": 0.0,
+        "pct_CRITICAL": 0.0,
+        "total_frames": 17262
+      },
+      {
+        "joint": "RightUpLeg",
+        "n_frames_WARNING": 0,
+        "n_frames_ALERT": 0,
+        "n_frames_CRITICAL": 0,
+        "pct_WARNING": 0.0,
+        "pct_ALERT": 0.0,
+        "pct_CRITICAL": 0.0,
+        "total_frames": 17262
+      },
+      {
+        "joint": "RightLeg",
+        "n_frames_WARNING": 13,
+        "n_frames_ALERT": 0,
+        "n_frames_CRITICAL": 0,
+        "pct_WARNING": 0.08,
+        "pct_ALERT": 0.0,
+        "pct_CRITICAL": 0.0,
+        "total_frames": 17262
+      },
+      {
+        "joint": "RightFoot",
+        "n_frames_WARNING": 0,
+        "n_frames_ALERT": 0,
+        "n_frames_CRITICAL": 0,
+        "pct_WARNING": 0.0,
+        "pct_ALERT": 0.0,
+        "pct_CRITICAL": 0.0,
+        "total_frames": 17262
+      },
+      {
+        "joint": "LeftShoulder",
+        "n_frames_WARNING": 0,
+        "n_frames_ALERT": 0,
+        "n_frames_CRITICAL": 0,
+        "pct_WARNING": 0.0,
+        "pct_ALERT": 0.0,
+        "pct_CRITICAL": 0.0,
+        "total_frames": 17262
+      },
+      {
+        "joint": "LeftArm",
+        "n_frames_WARNING": 0,
+        "n_frames_ALERT": 0,
+        "n_frames_CRITICAL": 0,
+        "pct_WARNING": 0.0,
+        "pct_ALERT": 0.0,
+        "pct_CRITICAL": 0.0,
+        "total_frames": 17262
+      },
+      {
+        "joint": "LeftForeArm",
+        "n_frames_WARNING": 2,
+        "n_frames_ALERT": 0,
+        "n_frames_CRITICAL": 0,
+        "pct_WARNING": 0.01,
+        "pct_ALERT": 0.0,
+        "pct_CRITICAL": 0.0,
+        "total_frames": 17262
+      },
+      {
+        "joint": "LeftHand",
+        "n_frames_WARNING": 242,
+        "n_frames_ALERT": 3,
+        "n_frames_CRITICAL": 0,
+        "pct_WARNING": 1.4,
+        "pct_ALERT": 0.02,
+        "pct_CRITICAL": 0.0,
+        "total_frames": 17262
+      },
+      {
+        "joint": "RightShoulder",
+        "n_frames_WARNING": 0,
+        "n_frames_ALERT": 0,
+        "n_frames_CRITICAL": 0,
+        "pct_WARNING": 0.0,
+        "pct_ALERT": 0.0,
+        "pct_CRITICAL": 0.0,
+        "total_frames": 17262
+      },
+      {
+        "joint": "RightArm",
+        "n_frames_WARNING": 16,
+        "n_frames_ALERT": 0,
+        "n_frames_CRITICAL": 0,
+        "pct_WARNING": 0.09,
+        "pct_ALERT": 0.0,
+        "pct_CRITICAL": 0.0,
+        "total_frames": 17262
+      },
+      {
+        "joint": "RightForeArm",
+        "n_frames_WARNING": 69,
+        "n_frames_ALERT": 0,
+        "n_frames_CRITICAL": 0,
+        "pct_WARNING": 0.4,
+        "pct_ALERT": 0.0,
+        "pct_CRITICAL": 0.0,
+        "total_frames": 17262
+      },
+      {
+        "joint": "RightHand",
+        "n_frames_WARNING": 674,
+        "n_frames_ALERT": 18,
+        "n_frames_CRITICAL": 0,
+        "pct_WARNING": 3.9,
+        "pct_ALERT": 0.1,
+        "pct_CRITICAL": 0.0,
+        "total_frames": 17262
+      }
+    ],
+    "angular_acceleration_deg_s2": [
+      {
+        "joint": "Hips",
+        "n_frames_WARNING": 0,
+        "n_frames_ALERT": 0,
+        "n_frames_CRITICAL": 0,
+        "pct_WARNING": 0.0,
+        "pct_ALERT": 0.0,
+        "pct_CRITICAL": 0.0,
+        "total_frames": 17262
+      },
+      {
+        "joint": "Spine",
+        "n_frames_WARNING": 0,
+        "n_frames_ALERT": 0,
+        "n_frames_CRITICAL": 0,
+        "pct_WARNING": 0.0,
+        "pct_ALERT": 0.0,
+        "pct_CRITICAL": 0.0,
+        "total_frames": 17262
+      },
+      {
+        "joint": "Spine1",
+        "n_frames_WARNING": 0,
+        "n_frames_ALERT": 0,
+        "n_frames_CRITICAL": 0,
+        "pct_WARNING": 0.0,
+        "pct_ALERT": 0.0,
+        "pct_CRITICAL": 0.0,
+        "total_frames": 17262
+      },
+      {
+        "joint": "Neck",
+        "n_frames_WARNING": 0,
+        "n_frames_ALERT": 0,
+        "n_frames_CRITICAL": 0,
+        "pct_WARNING": 0.0,
+        "pct_ALERT": 0.0,
+        "pct_CRITICAL": 0.0,
+        "total_frames": 17262
+      },
+      {
+        "joint": "Head",
+        "n_frames_WARNING": 0,
+        "n_frames_ALERT": 0,
+        "n_frames_CRITICAL": 0,
+        "pct_WARNING": 0.0,
+        "pct_ALERT": 0.0,
+        "pct_CRITICAL": 0.0,
+        "total_frames": 17262
+      },
+      {
+        "joint": "LeftUpLeg",
+        "n_frames_WARNING": 0,
+        "n_frames_ALERT": 0,
+        "n_frames_CRITICAL": 0,
+        "pct_WARNING": 0.0,
+        "pct_ALERT": 0.0,
+        "pct_CRITICAL": 0.0,
+        "total_frames": 17262
+      },
+      {
+        "joint": "LeftLeg",
+        "n_frames_WARNING": 0,
+        "n_frames_ALERT": 0,
+        "n_frames_CRITICAL": 0,
+        "pct_WARNING": 0.0,
+        "pct_ALERT": 0.0,
+        "pct_CRITICAL": 0.0,
+        "total_frames": 17262
+      },
+      {
+        "joint": "LeftFoot",
+        "n_frames_WARNING": 0,
+        "n_frames_ALERT": 0,
+        "n_frames_CRITICAL": 0,
+        "pct_WARNING": 0.0,
+        "pct_ALERT": 0.0,
+        "pct_CRITICAL": 0.0,
+        "total_frames": 17262
+      },
+      {
+        "joint": "RightUpLeg",
+        "n_frames_WARNING": 0,
+        "n_frames_ALERT": 0,
+        "n_frames_CRITICAL": 0,
+        "pct_WARNING": 0.0,
+        "pct_ALERT": 0.0,
+        "pct_CRITICAL": 0.0,
+        "total_frames": 17262
+      },
+      {
+        "joint": "RightLeg",
+        "n_frames_WARNING": 0,
+        "n_frames_ALERT": 0,
+        "n_frames_CRITICAL": 0,
+        "pct_WARNING": 0.0,
+        "pct_ALERT": 0.0,
+        "pct_CRITICAL": 0.0,
+        "total_frames": 17262
+      },
+      {
+        "joint": "RightFoot",
+        "n_frames_WARNING": 0,
+        "n_frames_ALERT": 0,
+        "n_frames_CRITICAL": 0,
+        "pct_WARNING": 0.0,
+        "pct_ALERT": 0.0,
+        "pct_CRITICAL": 0.0,
+        "total_frames": 17262
+      },
+      {
+        "joint": "LeftShoulder",
+        "n_frames_WARNING": 0,
+        "n_frames_ALERT": 0,
+        "n_frames_CRITICAL": 0,
+        "pct_WARNING": 0.0,
+        "pct_ALERT": 0.0,
+        "pct_CRITICAL": 0.0,
+        "total_frames": 17262
+      },
+      {
+        "joint": "LeftArm",
+        "n_frames_WARNING": 0,
+        "n_frames_ALERT": 0,
+        "n_frames_CRITICAL": 0,
+        "pct_WARNING": 0.0,
+        "pct_ALERT": 0.0,
+        "pct_CRITICAL": 0.0,
+        "total_frames": 17262
+      },
+      {
+        "joint": "LeftForeArm",
+        "n_frames_WARNING": 0,
+        "n_frames_ALERT": 0,
+        "n_frames_CRITICAL": 0,
+        "pct_WARNING": 0.0,
+        "pct_ALERT": 0.0,
+        "pct_CRITICAL": 0.0,
+        "total_frames": 17262
+      },
+      {
+        "joint": "LeftHand",
+        "n_frames_WARNING": 0,
+        "n_frames_ALERT": 0,
+        "n_frames_CRITICAL": 0,
+        "pct_WARNING": 0.0,
+        "pct_ALERT": 0.0,
+        "pct_CRITICAL": 0.0,
+        "total_frames": 17262
+      },
+      {
+        "joint": "RightShoulder",
+        "n_frames_WARNING": 0,
+        "n_frames_ALERT": 0,
+        "n_frames_CRITICAL": 0,
+        "pct_WARNING": 0.0,
+        "pct_ALERT": 0.0,
+        "pct_CRITICAL": 0.0,
+        "total_frames": 17262
+      },
+      {
+        "joint": "RightArm",
+        "n_frames_WARNING": 0,
+        "n_frames_ALERT": 0,
+        "n_frames_CRITICAL": 0,
+        "pct_WARNING": 0.0,
+        "pct_ALERT": 0.0,
+        "pct_CRITICAL": 0.0,
+        "total_frames": 17262
+      },
+      {
+        "joint": "RightForeArm",
+        "n_frames_WARNING": 0,
+        "n_frames_ALERT": 0,
+        "n_frames_CRITICAL": 0,
+        "pct_WARNING": 0.0,
+        "pct_ALERT": 0.0,
+        "pct_CRITICAL": 0.0,
+        "total_frames": 17262
+      },
+      {
+        "joint": "RightHand",
+        "n_frames_WARNING": 0,
+        "n_frames_ALERT": 0,
+        "n_frames_CRITICAL": 0,
+        "pct_WARNING": 0.0,
+        "pct_ALERT": 0.0,
+        "pct_CRITICAL": 0.0,
+        "total_frames": 17262
+      }
+    ],
+    "linear_velocity_mm_s": [
+      {
+        "segment": "RightHand",
+        "n_frames_WARNING": 753,
+        "n_frames_ALERT": 0,
+        "n_frames_CRITICAL": 0,
+        "pct_WARNING": 4.36,
+        "pct_ALERT": 0.0,
+        "pct_CRITICAL": 0.0,
+        "total_frames": 17262
+      },
+      {
+        "segment": "RightLeg",
+        "n_frames_WARNING": 8,
+        "n_frames_ALERT": 0,
+        "n_frames_CRITICAL": 0,
+        "pct_WARNING": 0.05,
+        "pct_ALERT": 0.0,
+        "pct_CRITICAL": 0.0,
+        "total_frames": 17262
+      },
+      {
+        "segment": "Neck",
+        "n_frames_WARNING": 0,
+        "n_frames_ALERT": 0,
+        "n_frames_CRITICAL": 0,
+        "pct_WARNING": 0.0,
+        "pct_ALERT": 0.0,
+        "pct_CRITICAL": 0.0,
+        "total_frames": 17262
+      },
+      {
+        "segment": "LeftHand",
+        "n_frames_WARNING": 204,
+        "n_frames_ALERT": 8,
+        "n_frames_CRITICAL": 0,
+        "pct_WARNING": 1.18,
+        "pct_ALERT": 0.05,
+        "pct_CRITICAL": 0.0,
+        "total_frames": 17262
+      },
+      {
+        "segment": "RightForeArm",
+        "n_frames_WARNING": 115,
+        "n_frames_ALERT": 0,
+        "n_frames_CRITICAL": 0,
+        "pct_WARNING": 0.67,
+        "pct_ALERT": 0.0,
+        "pct_CRITICAL": 0.0,
+        "total_frames": 17262
+      },
+      {
+        "segment": "RightUpLeg",
+        "n_frames_WARNING": 0,
+        "n_frames_ALERT": 0,
+        "n_frames_CRITICAL": 0,
+        "pct_WARNING": 0.0,
+        "pct_ALERT": 0.0,
+        "pct_CRITICAL": 0.0,
+        "total_frames": 17262
+      },
+      {
+        "segment": "RightArm",
+        "n_frames_WARNING": 0,
+        "n_frames_ALERT": 0,
+        "n_frames_CRITICAL": 0,
+        "pct_WARNING": 0.0,
+        "pct_ALERT": 0.0,
+        "pct_CRITICAL": 0.0,
+        "total_frames": 17262
+      },
+      {
+        "segment": "RightFoot",
+        "n_frames_WARNING": 34,
+        "n_frames_ALERT": 0,
+        "n_frames_CRITICAL": 0,
+        "pct_WARNING": 0.2,
+        "pct_ALERT": 0.0,
+        "pct_CRITICAL": 0.0,
+        "total_frames": 17262
+      },
+      {
+        "segment": "Hips",
+        "n_frames_WARNING": 0,
+        "n_frames_ALERT": 0,
+        "n_frames_CRITICAL": 0,
+        "pct_WARNING": 0.0,
+        "pct_ALERT": 0.0,
+        "pct_CRITICAL": 0.0,
+        "total_frames": 17262
+      },
+      {
+        "segment": "Spine",
+        "n_frames_WARNING": 0,
+        "n_frames_ALERT": 0,
+        "n_frames_CRITICAL": 0,
+        "pct_WARNING": 0.0,
+        "pct_ALERT": 0.0,
+        "pct_CRITICAL": 0.0,
+        "total_frames": 17262
+      },
+      {
+        "segment": "LeftFoot",
+        "n_frames_WARNING": 21,
+        "n_frames_ALERT": 0,
+        "n_frames_CRITICAL": 0,
+        "pct_WARNING": 0.12,
+        "pct_ALERT": 0.0,
+        "pct_CRITICAL": 0.0,
+        "total_frames": 17262
+      },
+      {
+        "segment": "Spine1",
+        "n_frames_WARNING": 0,
+        "n_frames_ALERT": 0,
+        "n_frames_CRITICAL": 0,
+        "pct_WARNING": 0.0,
+        "pct_ALERT": 0.0,
+        "pct_CRITICAL": 0.0,
+        "total_frames": 17262
+      },
+      {
+        "segment": "LeftArm",
+        "n_frames_WARNING": 0,
+        "n_frames_ALERT": 0,
+        "n_frames_CRITICAL": 0,
+        "pct_WARNING": 0.0,
+        "pct_ALERT": 0.0,
+        "pct_CRITICAL": 0.0,
+        "total_frames": 17262
+      },
+      {
+        "segment": "Head",
+        "n_frames_WARNING": 0,
+        "n_frames_ALERT": 0,
+        "n_frames_CRITICAL": 0,
+        "pct_WARNING": 0.0,
+        "pct_ALERT": 0.0,
+        "pct_CRITICAL": 0.0,
+        "total_frames": 17262
+      },
+      {
+        "segment": "LeftShoulder",
+        "n_frames_WARNING": 0,
+        "n_frames_ALERT": 0,
+        "n_frames_CRITICAL": 0,
+        "pct_WARNING": 0.0,
+        "pct_ALERT": 0.0,
+        "pct_CRITICAL": 0.0,
+        "total_frames": 17262
+      },
+      {
+        "segment": "RightShoulder",
+        "n_frames_WARNING": 0,
+        "n_frames_ALERT": 0,
+        "n_frames_CRITICAL": 0,
+        "pct_WARNING": 0.0,
+        "pct_ALERT": 0.0,
+        "pct_CRITICAL": 0.0,
+        "total_frames": 17262
+      },
+      {
+        "segment": "LeftUpLeg",
+        "n_frames_WARNING": 0,
+        "n_frames_ALERT": 0,
+        "n_frames_CRITICAL": 0,
+        "pct_WARNING": 0.0,
+        "pct_ALERT": 0.0,
+        "pct_CRITICAL": 0.0,
+        "total_frames": 17262
+      },
+      {
+        "segment": "LeftLeg",
+        "n_frames_WARNING": 5,
+        "n_frames_ALERT": 0,
+        "n_frames_CRITICAL": 0,
+        "pct_WARNING": 0.03,
+        "pct_ALERT": 0.0,
+        "pct_CRITICAL": 0.0,
+        "total_frames": 17262
+      },
+      {
+        "segment": "LeftForeArm",
+        "n_frames_WARNING": 62,
+        "n_frames_ALERT": 0,
+        "n_frames_CRITICAL": 0,
+        "pct_WARNING": 0.36,
+        "pct_ALERT": 0.0,
+        "pct_CRITICAL": 0.0,
+        "total_frames": 17262
+      }
+    ],
+    "linear_acceleration_mm_s2": [
+      {
+        "segment": "RightHand",
+        "n_frames_WARNING": 0,
+        "n_frames_ALERT": 0,
+        "n_frames_CRITICAL": 0,
+        "pct_WARNING": 0.0,
+        "pct_ALERT": 0.0,
+        "pct_CRITICAL": 0.0,
+        "total_frames": 17262
+      },
+      {
+        "segment": "RightLeg",
+        "n_frames_WARNING": 0,
+        "n_frames_ALERT": 0,
+        "n_frames_CRITICAL": 0,
+        "pct_WARNING": 0.0,
+        "pct_ALERT": 0.0,
+        "pct_CRITICAL": 0.0,
+        "total_frames": 17262
+      },
+      {
+        "segment": "Neck",
+        "n_frames_WARNING": 0,
+        "n_frames_ALERT": 0,
+        "n_frames_CRITICAL": 0,
+        "pct_WARNING": 0.0,
+        "pct_ALERT": 0.0,
+        "pct_CRITICAL": 0.0,
+        "total_frames": 17262
+      },
+      {
+        "segment": "LeftHand",
+        "n_frames_WARNING": 0,
+        "n_frames_ALERT": 0,
+        "n_frames_CRITICAL": 0,
+        "pct_WARNING": 0.0,
+        "pct_ALERT": 0.0,
+        "pct_CRITICAL": 0.0,
+        "total_frames": 17262
+      },
+      {
+        "segment": "RightForeArm",
+        "n_frames_WARNING": 0,
+        "n_frames_ALERT": 0,
+        "n_frames_CRITICAL": 0,
+        "pct_WARNING": 0.0,
+        "pct_ALERT": 0.0,
+        "pct_CRITICAL": 0.0,
+        "total_frames": 17262
+      },
+      {
+        "segment": "RightUpLeg",
+        "n_frames_WARNING": 0,
+        "n_frames_ALERT": 0,
+        "n_frames_CRITICAL": 0,
+        "pct_WARNING": 0.0,
+        "pct_ALERT": 0.0,
+        "pct_CRITICAL": 0.0,
+        "total_frames": 17262
+      },
+      {
+        "segment": "RightArm",
+        "n_frames_WARNING": 0,
+        "n_frames_ALERT": 0,
+        "n_frames_CRITICAL": 0,
+        "pct_WARNING": 0.0,
+        "pct_ALERT": 0.0,
+        "pct_CRITICAL": 0.0,
+        "total_frames": 17262
+      },
+      {
+        "segment": "RightFoot",
+        "n_frames_WARNING": 0,
+        "n_frames_ALERT": 0,
+        "n_frames_CRITICAL": 0,
+        "pct_WARNING": 0.0,
+        "pct_ALERT": 0.0,
+        "pct_CRITICAL": 0.0,
+        "total_frames": 17262
+      },
+      {
+        "segment": "Hips",
+        "n_frames_WARNING": 0,
+        "n_frames_ALERT": 0,
+        "n_frames_CRITICAL": 0,
+        "pct_WARNING": 0.0,
+        "pct_ALERT": 0.0,
+        "pct_CRITICAL": 0.0,
+        "total_frames": 17262
+      },
+      {
+        "segment": "Spine",
+        "n_frames_WARNING": 0,
+        "n_frames_ALERT": 0,
+        "n_frames_CRITICAL": 0,
+        "pct_WARNING": 0.0,
+        "pct_ALERT": 0.0,
+        "pct_CRITICAL": 0.0,
+        "total_frames": 17262
+      },
+      {
+        "segment": "LeftFoot",
+        "n_frames_WARNING": 0,
+        "n_frames_ALERT": 0,
+        "n_frames_CRITICAL": 0,
+        "pct_WARNING": 0.0,
+        "pct_ALERT": 0.0,
+        "pct_CRITICAL": 0.0,
+        "total_frames": 17262
+      },
+      {
+        "segment": "Spine1",
+        "n_frames_WARNING": 0,
+        "n_frames_ALERT": 0,
+        "n_frames_CRITICAL": 0,
+        "pct_WARNING": 0.0,
+        "pct_ALERT": 0.0,
+        "pct_CRITICAL": 0.0,
+        "total_frames": 17262
+      },
+      {
+        "segment": "LeftArm",
+        "n_frames_WARNING": 0,
+        "n_frames_ALERT": 0,
+        "n_frames_CRITICAL": 0,
+        "pct_WARNING": 0.0,
+        "pct_ALERT": 0.0,
+        "pct_CRITICAL": 0.0,
+        "total_frames": 17262
+      },
+      {
+        "segment": "Head",
+        "n_frames_WARNING": 0,
+        "n_frames_ALERT": 0,
+        "n_frames_CRITICAL": 0,
+        "pct_WARNING": 0.0,
+        "pct_ALERT": 0.0,
+        "pct_CRITICAL": 0.0,
+        "total_frames": 17262
+      },
+      {
+        "segment": "LeftShoulder",
+        "n_frames_WARNING": 0,
+        "n_frames_ALERT": 0,
+        "n_frames_CRITICAL": 0,
+        "pct_WARNING": 0.0,
+        "pct_ALERT": 0.0,
+        "pct_CRITICAL": 0.0,
+        "total_frames": 17262
+      },
+      {
+        "segment": "RightShoulder",
+        "n_frames_WARNING": 0,
+        "n_frames_ALERT": 0,
+        "n_frames_CRITICAL": 0,
+        "pct_WARNING": 0.0,
+        "pct_ALERT": 0.0,
+        "pct_CRITICAL": 0.0,
+        "total_frames": 17262
+      },
+      {
+        "segment": "LeftUpLeg",
+        "n_frames_WARNING": 0,
+        "n_frames_ALERT": 0,
+        "n_frames_CRITICAL": 0,
+        "pct_WARNING": 0.0,
+        "pct_ALERT": 0.0,
+        "pct_CRITICAL": 0.0,
+        "total_frames": 17262
+      },
+      {
+        "segment": "LeftLeg",
+        "n_frames_WARNING": 0,
+        "n_frames_ALERT": 0,
+        "n_frames_CRITICAL": 0,
+        "pct_WARNING": 0.0,
+        "pct_ALERT": 0.0,
+        "pct_CRITICAL": 0.0,
+        "total_frames": 17262
+      },
+      {
+        "segment": "LeftForeArm",
+        "n_frames_WARNING": 0,
+        "n_frames_ALERT": 0,
+        "n_frames_CRITICAL": 0,
+        "pct_WARNING": 0.0,
+        "pct_ALERT": 0.0,
+        "pct_CRITICAL": 0.0,
+        "total_frames": 17262
+      }
+    ]
   }
 }
