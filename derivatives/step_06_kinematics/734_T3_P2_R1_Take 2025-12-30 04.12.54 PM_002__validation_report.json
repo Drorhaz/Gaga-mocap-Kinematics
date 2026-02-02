@@ -8,7 +8,9 @@
       "max_omega_deg_s": 306.56,
       "mean_omega_deg_s": 60.31,
       "median_omega_deg_s": 54.35,
-      "exceeded_omega_threshold": false
+      "exceeded_omega_threshold": false,
+      "max_alpha_deg_s2": 2677.45,
+      "mean_alpha_deg_s2": 442.3
     },
     "Spine": {
       "geodesic_offset_std": 0.0,
@@ -16,7 +18,9 @@
       "max_omega_deg_s": 112.27,
       "mean_omega_deg_s": 23.0,
       "median_omega_deg_s": 18.96,
-      "exceeded_omega_threshold": false
+      "exceeded_omega_threshold": false,
+      "max_alpha_deg_s2": 1382.51,
+      "mean_alpha_deg_s2": 222.16
     },
     "Spine1": {
       "geodesic_offset_std": 0.0,
@@ -24,7 +28,9 @@
       "max_omega_deg_s": 113.26,
       "mean_omega_deg_s": 25.97,
       "median_omega_deg_s": 22.7,
-      "exceeded_omega_threshold": false
+      "exceeded_omega_threshold": false,
+      "max_alpha_deg_s2": 1390.25,
+      "mean_alpha_deg_s2": 247.86
     },
     "Neck": {
       "geodesic_offset_std": 0.0,
@@ -32,7 +38,9 @@
       "max_omega_deg_s": 160.26,
       "mean_omega_deg_s": 38.47,
       "median_omega_deg_s": 35.82,
-      "exceeded_omega_threshold": false
+      "exceeded_omega_threshold": false,
+      "max_alpha_deg_s2": 1706.13,
+      "mean_alpha_deg_s2": 368.03
     },
     "Head": {
       "geodesic_offset_std": 0.0,
@@ -40,7 +48,9 @@
       "max_omega_deg_s": 160.18,
       "mean_omega_deg_s": 38.46,
       "median_omega_deg_s": 35.77,
-      "exceeded_omega_threshold": false
+      "exceeded_omega_threshold": false,
+      "max_alpha_deg_s2": 1708.59,
+      "mean_alpha_deg_s2": 367.81
     },
     "LeftUpLeg": {
       "geodesic_offset_std": 0.0,
@@ -48,7 +58,9 @@
       "max_omega_deg_s": 433.15,
       "mean_omega_deg_s": 59.67,
       "median_omega_deg_s": 50.51,
-      "exceeded_omega_threshold": false
+      "exceeded_omega_threshold": false,
+      "max_alpha_deg_s2": 7024.89,
+      "mean_alpha_deg_s2": 606.34
     },
     "LeftLeg": {
       "geodesic_offset_std": 0.0,
@@ -56,7 +68,9 @@
       "max_omega_deg_s": 808.09,
       "mean_omega_deg_s": 84.12,
       "median_omega_deg_s": 65.37,
-      "exceeded_omega_threshold": false
+      "exceeded_omega_threshold": false,
+      "max_alpha_deg_s2": 13125.21,
+      "mean_alpha_deg_s2": 1114.22
     },
     "LeftFoot": {
       "geodesic_offset_std": 0.0,
@@ -64,7 +78,9 @@
       "max_omega_deg_s": 474.97,
       "mean_omega_deg_s": 89.25,
       "median_omega_deg_s": 73.08,
-      "exceeded_omega_threshold": false
+      "exceeded_omega_threshold": false,
+      "max_alpha_deg_s2": 10063.68,
+      "mean_alpha_deg_s2": 1272.27
     },
     "RightUpLeg": {
       "geodesic_offset_std": 0.0,
@@ -72,7 +88,9 @@
       "max_omega_deg_s": 340.96,
       "mean_omega_deg_s": 52.3,
       "median_omega_deg_s": 41.33,
-      "exceeded_omega_threshold": false
+      "exceeded_omega_threshold": false,
+      "max_alpha_deg_s2": 4906.46,
+      "mean_alpha_deg_s2": 506.85
     },
     "RightLeg": {
       "geodesic_offset_std": 0.0,
@@ -80,7 +98,9 @@
       "max_omega_deg_s": 539.07,
       "mean_omega_deg_s": 65.78,
       "median_omega_deg_s": 44.28,
-      "exceeded_omega_threshold": false
+      "exceeded_omega_threshold": false,
+      "max_alpha_deg_s2": 7131.57,
+      "mean_alpha_deg_s2": 774.25
     },
     "RightFoot": {
       "geodesic_offset_std": 0.0,
@@ -88,7 +108,9 @@
       "max_omega_deg_s": 444.04,
       "mean_omega_deg_s": 80.87,
       "median_omega_deg_s": 68.73,
-      "exceeded_omega_threshold": false
+      "exceeded_omega_threshold": false,
+      "max_alpha_deg_s2": 10911.91,
+      "mean_alpha_deg_s2": 1118.59
     },
     "LeftShoulder": {
       "geodesic_offset_std": 0.0,
@@ -96,7 +118,9 @@
       "max_omega_deg_s": 278.61,
       "mean_omega_deg_s": 44.91,
       "median_omega_deg_s": 40.09,
-      "exceeded_omega_threshold": false
+      "exceeded_omega_threshold": false,
+      "max_alpha_deg_s2": 3817.84,
+      "mean_alpha_deg_s2": 494.25
     },
     "LeftArm": {
       "geodesic_offset_std": 0.0,
@@ -104,7 +128,9 @@
       "max_omega_deg_s": 719.13,
       "mean_omega_deg_s": 105.25,
       "median_omega_deg_s": 91.59,
-      "exceeded_omega_threshold": false
+      "exceeded_omega_threshold": false,
+      "max_alpha_deg_s2": 12297.38,
+      "mean_alpha_deg_s2": 1132.88
     },
     "LeftForeArm": {
       "geodesic_offset_std": 0.0,
@@ -112,7 +138,9 @@
       "max_omega_deg_s": 794.89,
       "mean_omega_deg_s": 156.82,
       "median_omega_deg_s": 124.64,
-      "exceeded_omega_threshold": false
+      "exceeded_omega_threshold": false,
+      "max_alpha_deg_s2": 15312.23,
+      "mean_alpha_deg_s2": 2019.83
     },
     "LeftHand": {
       "geodesic_offset_std": 0.0,
@@ -120,7 +148,9 @@
       "max_omega_deg_s": 1603.33,
       "mean_omega_deg_s": 165.75,
       "median_omega_deg_s": 123.3,
-      "exceeded_omega_threshold": false
+      "exceeded_omega_threshold": false,
+      "max_alpha_deg_s2": 29050.59,
+      "mean_alpha_deg_s2": 2637.46
     },
     "RightShoulder": {
       "geodesic_offset_std": 0.0,
@@ -128,7 +158,9 @@
       "max_omega_deg_s": 268.73,
       "mean_omega_deg_s": 53.05,
       "median_omega_deg_s": 48.79,
-      "exceeded_omega_threshold": false
+      "exceeded_omega_threshold": false,
+      "max_alpha_deg_s2": 3743.49,
+      "mean_alpha_deg_s2": 574.28
     },
     "RightArm": {
       "geodesic_offset_std": 0.0,
@@ -136,7 +168,9 @@
       "max_omega_deg_s": 792.19,
       "mean_omega_deg_s": 131.54,
       "median_omega_deg_s": 117.76,
-      "exceeded_omega_threshold": false
+      "exceeded_omega_threshold": false,
+      "max_alpha_deg_s2": 9674.09,
+      "mean_alpha_deg_s2": 1334.91
     },
     "RightForeArm": {
       "geodesic_offset_std": 0.0,
@@ -144,7 +178,9 @@
       "max_omega_deg_s": 840.83,
       "mean_omega_deg_s": 181.73,
       "median_omega_deg_s": 154.27,
-      "exceeded_omega_threshold": false
+      "exceeded_omega_threshold": false,
+      "max_alpha_deg_s2": 15169.53,
+      "mean_alpha_deg_s2": 2176.93
     },
     "RightHand": {
       "geodesic_offset_std": 0.0,
@@ -152,85 +188,106 @@
       "max_omega_deg_s": 1195.3,
       "mean_omega_deg_s": 143.95,
       "median_omega_deg_s": 110.86,
-      "exceeded_omega_threshold": false
+      "exceeded_omega_threshold": false,
+      "max_alpha_deg_s2": 18571.79,
+      "mean_alpha_deg_s2": 2056.88
     }
   },
   "per_segment_linear": {
-    "Spine": {
-      "max_lin_acc_mm_s2": 2534.84,
-      "exceeded_lin_acc_threshold": false
-    },
-    "RightLeg": {
-      "max_lin_acc_mm_s2": 23360.22,
-      "exceeded_lin_acc_threshold": true
-    },
-    "LeftArm": {
-      "max_lin_acc_mm_s2": 11910.6,
-      "exceeded_lin_acc_threshold": false
-    },
-    "LeftShoulder": {
-      "max_lin_acc_mm_s2": 9516.67,
+    "Hips": {
+      "max_lin_vel_mm_s": 0.0,
+      "max_lin_acc_mm_s2": 0.0,
       "exceeded_lin_acc_threshold": false
     },
     "LeftUpLeg": {
+      "max_lin_vel_mm_s": 498.61,
       "max_lin_acc_mm_s2": 3615.59,
       "exceeded_lin_acc_threshold": false
     },
-    "RightForeArm": {
-      "max_lin_acc_mm_s2": 23199.7,
-      "exceeded_lin_acc_threshold": true
-    },
-    "LeftLeg": {
-      "max_lin_acc_mm_s2": 39096.52,
-      "exceeded_lin_acc_threshold": true
-    },
-    "LeftHand": {
-      "max_lin_acc_mm_s2": 30375.07,
-      "exceeded_lin_acc_threshold": true
-    },
-    "Head": {
-      "max_lin_acc_mm_s2": 11463.77,
-      "exceeded_lin_acc_threshold": false
-    },
     "LeftForeArm": {
+      "max_lin_vel_mm_s": 3046.31,
       "max_lin_acc_mm_s2": 25159.46,
       "exceeded_lin_acc_threshold": true
     },
-    "RightShoulder": {
-      "max_lin_acc_mm_s2": 9104.35,
-      "exceeded_lin_acc_threshold": false
-    },
     "RightFoot": {
+      "max_lin_vel_mm_s": 3686.96,
       "max_lin_acc_mm_s2": 29372.72,
       "exceeded_lin_acc_threshold": true
     },
+    "RightArm": {
+      "max_lin_vel_mm_s": 1523.35,
+      "max_lin_acc_mm_s2": 10898.39,
+      "exceeded_lin_acc_threshold": false
+    },
+    "RightLeg": {
+      "max_lin_vel_mm_s": 2739.87,
+      "max_lin_acc_mm_s2": 23360.22,
+      "exceeded_lin_acc_threshold": true
+    },
+    "Head": {
+      "max_lin_vel_mm_s": 1779.49,
+      "max_lin_acc_mm_s2": 11463.77,
+      "exceeded_lin_acc_threshold": false
+    },
+    "LeftShoulder": {
+      "max_lin_vel_mm_s": 1414.75,
+      "max_lin_acc_mm_s2": 9516.67,
+      "exceeded_lin_acc_threshold": false
+    },
+    "RightHand": {
+      "max_lin_vel_mm_s": 4547.81,
+      "max_lin_acc_mm_s2": 28780.03,
+      "exceeded_lin_acc_threshold": true
+    },
+    "RightShoulder": {
+      "max_lin_vel_mm_s": 1338.64,
+      "max_lin_acc_mm_s2": 9104.35,
+      "exceeded_lin_acc_threshold": false
+    },
+    "LeftHand": {
+      "max_lin_vel_mm_s": 4222.73,
+      "max_lin_acc_mm_s2": 30375.07,
+      "exceeded_lin_acc_threshold": true
+    },
+    "LeftLeg": {
+      "max_lin_vel_mm_s": 3432.95,
+      "max_lin_acc_mm_s2": 39096.52,
+      "exceeded_lin_acc_threshold": true
+    },
+    "RightUpLeg": {
+      "max_lin_vel_mm_s": 498.61,
+      "max_lin_acc_mm_s2": 3615.59,
+      "exceeded_lin_acc_threshold": false
+    },
+    "Neck": {
+      "max_lin_vel_mm_s": 1479.63,
+      "max_lin_acc_mm_s2": 9904.82,
+      "exceeded_lin_acc_threshold": false
+    },
     "LeftFoot": {
+      "max_lin_vel_mm_s": 2963.56,
       "max_lin_acc_mm_s2": 23428.46,
       "exceeded_lin_acc_threshold": true
     },
     "Spine1": {
+      "max_lin_vel_mm_s": 762.99,
       "max_lin_acc_mm_s2": 7164.33,
       "exceeded_lin_acc_threshold": false
     },
-    "RightHand": {
-      "max_lin_acc_mm_s2": 28780.03,
+    "Spine": {
+      "max_lin_vel_mm_s": 239.06,
+      "max_lin_acc_mm_s2": 2534.84,
+      "exceeded_lin_acc_threshold": false
+    },
+    "LeftArm": {
+      "max_lin_vel_mm_s": 1674.37,
+      "max_lin_acc_mm_s2": 11910.6,
+      "exceeded_lin_acc_threshold": false
+    },
+    "RightForeArm": {
+      "max_lin_vel_mm_s": 2909.65,
+      "max_lin_acc_mm_s2": 23199.7,
       "exceeded_lin_acc_threshold": true
-    },
-    "Neck": {
-      "max_lin_acc_mm_s2": 9904.82,
-      "exceeded_lin_acc_threshold": false
-    },
-    "RightArm": {
-      "max_lin_acc_mm_s2": 10898.39,
-      "exceeded_lin_acc_threshold": false
-    },
-    "RightUpLeg": {
-      "max_lin_acc_mm_s2": 3615.59,
-      "exceeded_lin_acc_threshold": false
-    },
-    "Hips": {
-      "max_lin_acc_mm_s2": 0.0,
-      "exceeded_lin_acc_threshold": false
     }
   },
   "outlier_validation": {
@@ -1223,74 +1280,114 @@
       }
     ]
   },
+  "outlier_analysis": {
+    "counts": {
+      "total_outliers": 87
+    },
+    "percentages": {
+      "total_outliers": 0.527176876931467
+    },
+    "consecutive_runs": {
+      "max_consecutive_any_outlier": 0
+    }
+  },
+  "step_06_burst_analysis": {
+    "classification": {
+      "artifact_count": 5,
+      "burst_count": 13,
+      "flow_count": 4,
+      "total_events": 22
+    },
+    "frame_statistics": {
+      "artifact_frames": 9,
+      "artifact_rate_percent": 0.0545,
+      "retained_frames": 16494,
+      "retention_rate_percent": 99.9455
+    }
+  },
+  "clean_statistics": {
+    "clean_statistics": {
+      "max_deg_s": 799.6,
+      "mean_deg_s": 83.74
+    },
+    "comparison": {
+      "raw_max_deg_s": 1603.33,
+      "velocity_reduction_percent": 50.13
+    },
+    "data_retention": {
+      "frames_excluded": 9,
+      "frames_retained": 16494,
+      "retention_percent": 99.9455
+    }
+  },
   "path_length_m": {
-    "Hips": 0.0,
-    "Spine": 0.0,
-    "Spine1": 0.0,
-    "Neck": 0.0,
-    "Head": 0.0,
-    "LeftUpLeg": 0.0,
-    "LeftLeg": 0.0,
-    "LeftFoot": 0.0,
-    "RightUpLeg": 0.0,
-    "RightLeg": 0.0,
-    "RightFoot": 0.0,
-    "LeftShoulder": 0.0,
-    "LeftArm": 0.0,
-    "LeftForeArm": 0.0,
-    "LeftHand": 0.0,
-    "RightShoulder": 0.0,
-    "RightArm": 0.0,
-    "RightForeArm": 0.0,
-    "RightHand": 0.0
+    "LeftHand": 182.80815067366558,
+    "RightHand": 170.22845394845982,
+    "RightForeArm": 130.5848592168985,
+    "LeftForeArm": 120.2144605009853,
+    "RightFoot": 71.85988233655877,
+    "LeftFoot": 71.51492589224358,
+    "Head": 67.30609992953372,
+    "RightArm": 61.99827084563,
+    "LeftArm": 60.90598442254894,
+    "LeftLeg": 59.78441735282174,
+    "Neck": 55.52722929384433,
+    "RightShoulder": 51.98582062966884,
+    "LeftShoulder": 51.839560390108275,
+    "RightLeg": 50.228851767538735,
+    "Spine1": 29.616711461238246,
+    "RightUpLeg": 12.619114321313557,
+    "LeftUpLeg": 12.618921139567734,
+    "Spine": 7.437017184312053,
+    "Hips": 0.0
   },
   "bilateral_symmetry": {
     "path_length_upper_arm": {
-      "left_value": 0.0,
-      "right_value": 0.0,
-      "absolute_diff": 0.0,
-      "percent_diff": 0.0,
-      "symmetry_index": 1.0,
+      "left_value": 60.90598442254894,
+      "right_value": 61.99827084563,
+      "absolute_diff": 1.0922864230810632,
+      "percent_diff": 1.7618014312056476,
+      "symmetry_index": 0.9823819856879435,
       "metric_name": "path_length_upper_arm"
     },
     "path_length_forearm": {
-      "left_value": 0.0,
-      "right_value": 0.0,
-      "absolute_diff": 0.0,
-      "percent_diff": 0.0,
-      "symmetry_index": 1.0,
+      "left_value": 120.2144605009853,
+      "right_value": 130.5848592168985,
+      "absolute_diff": 10.370398715913211,
+      "percent_diff": 7.9415016243868,
+      "symmetry_index": 0.920584983756132,
       "metric_name": "path_length_forearm"
     },
     "path_length_hand": {
-      "left_value": 0.0,
-      "right_value": 0.0,
-      "absolute_diff": 0.0,
-      "percent_diff": 0.0,
-      "symmetry_index": 1.0,
+      "left_value": 182.80815067366558,
+      "right_value": 170.22845394845982,
+      "absolute_diff": 12.579696725205764,
+      "percent_diff": 6.881365343311212,
+      "symmetry_index": 0.9311863465668879,
       "metric_name": "path_length_hand"
     },
     "path_length_thigh": {
-      "left_value": 0.0,
-      "right_value": 0.0,
-      "absolute_diff": 0.0,
-      "percent_diff": 0.0,
-      "symmetry_index": 1.0,
+      "left_value": 12.618921139567734,
+      "right_value": 12.619114321313557,
+      "absolute_diff": 0.00019318174582316772,
+      "percent_diff": 0.0015308661202703083,
+      "symmetry_index": 0.9999846913387973,
       "metric_name": "path_length_thigh"
     },
     "path_length_shin": {
-      "left_value": 0.0,
-      "right_value": 0.0,
-      "absolute_diff": 0.0,
-      "percent_diff": 0.0,
-      "symmetry_index": 1.0,
+      "left_value": 59.78441735282174,
+      "right_value": 50.228851767538735,
+      "absolute_diff": 9.555565585283006,
+      "percent_diff": 15.983371601483034,
+      "symmetry_index": 0.8401662839851697,
       "metric_name": "path_length_shin"
     },
     "path_length_foot": {
-      "left_value": 0.0,
-      "right_value": 0.0,
-      "absolute_diff": 0.0,
-      "percent_diff": 0.0,
-      "symmetry_index": 1.0,
+      "left_value": 71.51492589224358,
+      "right_value": 71.85988233655877,
+      "absolute_diff": 0.3449564443151871,
+      "percent_diff": 0.48004036897746255,
+      "symmetry_index": 0.9951995963102254,
       "metric_name": "path_length_foot"
     },
     "max_omega_upper_arm": {
@@ -1391,24 +1488,90 @@
     }
   },
   "intensity_index_m_per_s": {
-    "Hips": 0.0,
-    "Spine": 0.0,
-    "Spine1": 0.0,
-    "Neck": 0.0,
-    "Head": 0.0,
-    "LeftUpLeg": 0.0,
-    "LeftLeg": 0.0,
-    "LeftFoot": 0.0,
-    "RightUpLeg": 0.0,
-    "RightLeg": 0.0,
-    "RightFoot": 0.0,
-    "LeftShoulder": 0.0,
-    "LeftArm": 0.0,
-    "LeftForeArm": 0.0,
-    "LeftHand": 0.0,
-    "RightShoulder": 0.0,
-    "RightArm": 0.0,
-    "RightForeArm": 0.0,
-    "RightHand": 0.0
+    "LeftHand": 1.32927213723807,
+    "RightHand": 1.237800065067877,
+    "RightForeArm": 0.9495354242275841,
+    "LeftForeArm": 0.8741280530884225,
+    "RightFoot": 0.5225223220255136,
+    "LeftFoot": 0.5200140039428728,
+    "Head": 0.4894099249557078,
+    "RightArm": 0.4508145489593165,
+    "LeftArm": 0.442872091783668,
+    "LeftLeg": 0.4347167231617651,
+    "Neck": 0.40376098377636305,
+    "RightShoulder": 0.37800996640369994,
+    "LeftShoulder": 0.3769464489373443,
+    "RightLeg": 0.36523433388502985,
+    "Spine1": 0.21535510969815122,
+    "RightUpLeg": 0.09175869348346523,
+    "LeftUpLeg": 0.09175728878071429,
+    "Spine": 0.054077565419465935,
+    "Hips": 0.0
+  },
+  "path_length": {
+    "by_segment": {
+      "LeftHand": 182.80815067366558,
+      "RightHand": 170.22845394845982,
+      "RightForeArm": 130.5848592168985,
+      "LeftForeArm": 120.2144605009853,
+      "RightFoot": 71.85988233655877,
+      "LeftFoot": 71.51492589224358,
+      "Head": 67.30609992953372,
+      "RightArm": 61.99827084563,
+      "LeftArm": 60.90598442254894,
+      "LeftLeg": 59.78441735282174,
+      "Neck": 55.52722929384433,
+      "RightShoulder": 51.98582062966884,
+      "LeftShoulder": 51.839560390108275,
+      "RightLeg": 50.228851767538735,
+      "Spine1": 29.616711461238246,
+      "RightUpLeg": 12.619114321313557,
+      "LeftUpLeg": 12.618921139567734,
+      "Spine": 7.437017184312053,
+      "Hips": 0.0
+    },
+    "by_region": {
+      "Neck": 55.52722929384433,
+      "Shoulders": 51.98582062966884,
+      "Elbows": 61.99827084563,
+      "Wrists": 130.5848592168985,
+      "Spine": 29.616711461238246,
+      "Hips": 12.619114321313557,
+      "Knees": 59.78441735282174,
+      "Ankles": 71.85988233655877
+    }
+  },
+  "intensity_index": {
+    "by_segment": {
+      "LeftHand": 1.32927213723807,
+      "RightHand": 1.237800065067877,
+      "RightForeArm": 0.9495354242275841,
+      "LeftForeArm": 0.8741280530884225,
+      "RightFoot": 0.5225223220255136,
+      "LeftFoot": 0.5200140039428728,
+      "Head": 0.4894099249557078,
+      "RightArm": 0.4508145489593165,
+      "LeftArm": 0.442872091783668,
+      "LeftLeg": 0.4347167231617651,
+      "Neck": 0.40376098377636305,
+      "RightShoulder": 0.37800996640369994,
+      "LeftShoulder": 0.3769464489373443,
+      "RightLeg": 0.36523433388502985,
+      "Spine1": 0.21535510969815122,
+      "RightUpLeg": 0.09175869348346523,
+      "LeftUpLeg": 0.09175728878071429,
+      "Spine": 0.054077565419465935,
+      "Hips": 0.0
+    },
+    "by_region": {
+      "Neck": 0.40376098377636305,
+      "Shoulders": 0.37800996640369994,
+      "Elbows": 0.4508145489593165,
+      "Wrists": 0.9495354242275841,
+      "Spine": 0.21535510969815122,
+      "Hips": 0.09175869348346523,
+      "Knees": 0.4347167231617651,
+      "Ankles": 0.5225223220255136
+    }
   }
 }

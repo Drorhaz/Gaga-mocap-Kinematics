@@ -1235,6 +1235,56 @@ def build_subject_profile(df_engineering, subject_id: str):
     return profile
 
 
+def _extract_max_from_per_joint(s06: dict, field_name: str) -> float:
+    """
+    Extract maximum value from per_joint dictionary.
+    
+    Args:
+        s06: Step 06 JSON data
+        field_name: Field to extract (e.g., 'max_omega_deg_s')
+        
+    Returns:
+        Maximum value across all joints, or 0.0 if not found
+    """
+    per_joint = s06.get("per_joint", {})
+    if not per_joint:
+        return 0.0
+    
+    max_val = 0.0
+    for joint, data in per_joint.items():
+        if isinstance(data, dict) and field_name in data:
+            val = safe_float(data[field_name])
+            if val > max_val:
+                max_val = val
+    
+    return max_val
+
+
+def _extract_max_from_per_segment_linear(s06: dict, field_name: str) -> float:
+    """
+    Extract maximum value from per_segment_linear dictionary.
+    
+    Args:
+        s06: Step 06 JSON data
+        field_name: Field to extract (e.g., 'max_lin_acc_mm_s2')
+        
+    Returns:
+        Maximum value across all segments, or 0.0 if not found
+    """
+    per_segment = s06.get("per_segment_linear", {})
+    if not per_segment:
+        return 0.0
+    
+    max_val = 0.0
+    for segment, data in per_segment.items():
+        if isinstance(data, dict) and field_name in data:
+            val = safe_float(data[field_name])
+            if val > max_val:
+                max_val = val
+    
+    return max_val
+
+
 def build_engineering_profile_row(run_id: str, steps: Dict[str, dict]) -> Dict[str, Any]:
     """
     Build pure physical/engineering profile for a run (NO SCORING, NO DECISIONS).
@@ -1357,10 +1407,10 @@ def build_engineering_profile_row(run_id: str, steps: Dict[str, dict]) -> Dict[s
     # SECTION 7: KINEMATIC EXTREMES (Processed Output)
     # =================================================================
     profile.update({
-        "Max_Angular_Velocity_deg_s": round(safe_float(safe_get_path(s06, "metrics.angular_velocity.max")), 2),
-        "Max_Angular_Acceleration_deg_s2": round(safe_float(safe_get_path(s06, "metrics.angular_accel.max")), 2),
-        "Max_Linear_Velocity_mm_s": round(safe_float(safe_get_path(s06, "metrics.linear_velocity.max")), 2) if safe_get_path(s06, "metrics.linear_velocity.max") != 'N/A' else 'N/A',
-        "Max_Linear_Acceleration_mm_s2": round(safe_float(safe_get_path(s06, "metrics.linear_accel.max")), 2),
+        "Max_Angular_Velocity_deg_s": round(_extract_max_from_per_joint(s06, "max_omega_deg_s"), 2),
+        "Max_Angular_Acceleration_deg_s2": round(_extract_max_from_per_joint(s06, "max_alpha_deg_s2"), 2),
+        "Max_Linear_Velocity_mm_s": round(_extract_max_from_per_segment_linear(s06, "max_lin_vel_mm_s"), 2),
+        "Max_Linear_Acceleration_mm_s2": round(_extract_max_from_per_segment_linear(s06, "max_lin_acc_mm_s2"), 2),
         "Path_Length_Hips_mm": round(safe_float(safe_get_path(s06, "movement_metrics.path_length_mm")), 1),
         "Intensity_Index": round(safe_float(safe_get_path(s06, "movement_metrics.intensity_index")), 3),
     })
@@ -1384,9 +1434,9 @@ def build_engineering_profile_row(run_id: str, steps: Dict[str, dict]) -> Dict[s
     profile.update({
         "Clean_Max_Velocity_deg_s": round(safe_float(safe_get_path(s06, "clean_statistics.clean_statistics.max_deg_s")), 2),
         "Clean_Mean_Velocity_deg_s": round(safe_float(safe_get_path(s06, "clean_statistics.clean_statistics.mean_deg_s")), 2),
-        "Velocity_Reduction_Percent": round(safe_float(safe_get_path(s06, "clean_statistics.comparison.max_reduction_percent")), 2),
-        "Data_Retained_Percent": round(safe_float(safe_get_path(s06, "clean_statistics.comparison.data_retained_percent")), 4),
-        "Excluded_Frame_Count": safe_int(safe_get_path(s06, "step_06_data_validity.excluded_frame_count")),
+        "Velocity_Reduction_Percent": round(safe_float(safe_get_path(s06, "clean_statistics.comparison.velocity_reduction_percent")), 2),
+        "Data_Retained_Percent": round(safe_float(safe_get_path(s06, "clean_statistics.data_retention.retention_percent")), 4),
+        "Excluded_Frame_Count": safe_int(safe_get_path(s06, "clean_statistics.data_retention.frames_excluded")),
     })
     
     # =================================================================
@@ -1404,6 +1454,47 @@ def build_engineering_profile_row(run_id: str, steps: Dict[str, dict]) -> Dict[s
     profile.update({
         "Pipeline_Completion_Step": safe_get_path(s06, "overall_status"),
         "Overall_Gate_Status": safe_get_path(s06, "overall_gate_status"),
+    })
+    
+    # =================================================================
+    # SECTION 12: PATH LENGTH & INTENSITY METRICS (Phase 2 & 3)
+    # =================================================================
+    profile.update({
+        # Aggregate Path Length Metrics
+        "Path_Length_Max_m": safe_float(safe_get_path(phase2, "path_length.max_m")),
+        "Path_Length_Mean_m": safe_float(safe_get_path(phase2, "path_length.mean_m")),
+        "Path_Length_Total_m": safe_float(safe_get_path(phase2, "path_length.total_m")),
+        "Most_Active_Segments": ", ".join(safe_get_path(phase2, "path_length.top_3_segments") or []),
+        
+        # Aggregate Intensity Metrics
+        "Intensity_Max_m_per_s": round(safe_float(safe_get_path(phase2, "intensity_index.max_m_per_s")), 4),
+        "Intensity_Mean_m_per_s": round(safe_float(safe_get_path(phase2, "intensity_index.mean_m_per_s")), 4),
+        "Most_Intense_Segments": ", ".join(safe_get_path(phase2, "intensity_index.top_3_segments") or []),
+        
+        # Anatomical Region Path Lengths (Human-Readable)
+        "Path_Neck_m": round(safe_float(safe_get_path(phase2, "path_length.by_region.Neck")), 2),
+        "Path_Shoulders_m": round(safe_float(safe_get_path(phase2, "path_length.by_region.Shoulders")), 2),
+        "Path_Elbows_m": round(safe_float(safe_get_path(phase2, "path_length.by_region.Elbows")), 2),
+        "Path_Wrists_m": round(safe_float(safe_get_path(phase2, "path_length.by_region.Wrists")), 2),
+        "Path_Spine_m": round(safe_float(safe_get_path(phase2, "path_length.by_region.Spine")), 2),
+        "Path_Hips_m": round(safe_float(safe_get_path(phase2, "path_length.by_region.Hips")), 2),
+        "Path_Knees_m": round(safe_float(safe_get_path(phase2, "path_length.by_region.Knees")), 2),
+        "Path_Ankles_m": round(safe_float(safe_get_path(phase2, "path_length.by_region.Ankles")), 2),
+        
+        # Anatomical Region Intensity (Human-Readable)
+        "Intensity_Neck_m_per_s": round(safe_float(safe_get_path(phase2, "intensity_index.by_region.Neck")), 4),
+        "Intensity_Shoulders_m_per_s": round(safe_float(safe_get_path(phase2, "intensity_index.by_region.Shoulders")), 4),
+        "Intensity_Elbows_m_per_s": round(safe_float(safe_get_path(phase2, "intensity_index.by_region.Elbows")), 4),
+        "Intensity_Wrists_m_per_s": round(safe_float(safe_get_path(phase2, "intensity_index.by_region.Wrists")), 4),
+        "Intensity_Spine_m_per_s": round(safe_float(safe_get_path(phase2, "intensity_index.by_region.Spine")), 4),
+        "Intensity_Hips_m_per_s": round(safe_float(safe_get_path(phase2, "intensity_index.by_region.Hips")), 4),
+        "Intensity_Knees_m_per_s": round(safe_float(safe_get_path(phase2, "intensity_index.by_region.Knees")), 4),
+        "Intensity_Ankles_m_per_s": round(safe_float(safe_get_path(phase2, "intensity_index.by_region.Ankles")), 4),
+        
+        # Bilateral Symmetry
+        "Bilateral_Symmetry_Mean": safe_float(safe_get_path(phase2, "bilateral_symmetry.mean_index")),
+        "Bilateral_Symmetry_Min": safe_float(safe_get_path(phase2, "bilateral_symmetry.min_index")),
+        "Most_Asymmetric_Pair": safe_get_path(phase2, "bilateral_symmetry.most_asymmetric"),
     })
     
     return profile
@@ -1587,8 +1678,25 @@ def extract_phase2_metrics(steps: Dict[str, dict]) -> Dict[str, Any]:
     """
     s06 = steps.get("step_06", {})
     
-    # Extract path length (in meters, per segment)
-    path_lengths = s06.get("path_length_m", {})
+    # DEBUG: Check what's in s06
+    if "path_length" in s06:
+        print(f"[DEBUG] extract_phase2_metrics: Found 'path_length' in s06")
+        if isinstance(s06["path_length"], dict) and "by_region" in s06["path_length"]:
+            print(f"[DEBUG] Found by_region structure: {s06['path_length']['by_region']}")
+    else:
+        print(f"[DEBUG] extract_phase2_metrics: 'path_length' NOT in s06, keys: {list(s06.keys())[:10]}")
+    
+    # Try new nested structure first (notebook 06 with regional grouping)
+    path_length_data = s06.get("path_length", {})
+    if isinstance(path_length_data, dict) and "by_segment" in path_length_data:
+        # New structure: {"by_segment": {...}, "by_region": {...}}
+        path_lengths = path_length_data.get("by_segment", {})
+        path_by_region = path_length_data.get("by_region", {})
+    else:
+        # Fallback: old structure (flat dict)
+        path_lengths = s06.get("path_length_m", {})
+        # Compute regions from segments
+        path_by_region = aggregate_by_anatomical_region(path_lengths, aggregation_func="max") if path_lengths else {}
     
     # Compute aggregate metrics
     if path_lengths:
@@ -1632,11 +1740,20 @@ def extract_phase2_metrics(steps: Dict[str, dict]) -> Dict[str, Any]:
         min_symmetry = 1.0
         most_asymmetric = "N/A"
     
-    # Aggregate path length by anatomical region
-    path_by_region = aggregate_by_anatomical_region(path_lengths, aggregation_func="max")
-    
     # Extract intensity index (Phase 3)
-    intensity_index = s06.get("intensity_index_m_per_s", {})
+    intensity_data = s06.get("intensity_index", {})
+    if isinstance(intensity_data, dict) and "by_segment" in intensity_data:
+        # New structure: {"by_segment": {...}, "by_region": {...}}
+        intensity_index = intensity_data.get("by_segment", {})
+        intensity_by_region = intensity_data.get("by_region", {})
+        print(f"[DEBUG] Found new intensity structure with by_region: {intensity_by_region}")
+    else:
+        # Fallback: old structure (flat dict)
+        intensity_index = s06.get("intensity_index_m_per_s", {})
+        # Compute regions from segments
+        intensity_by_region = aggregate_by_anatomical_region(intensity_index, aggregation_func="max") if intensity_index else {}
+        print(f"[DEBUG] Using fallback intensity structure, computed by_region: {intensity_by_region}")
+    
     if intensity_index:
         intensity_values = list(intensity_index.values())
         max_intensity = max(intensity_values) if intensity_values else 0.0
@@ -1649,9 +1766,6 @@ def extract_phase2_metrics(steps: Dict[str, dict]) -> Dict[str, Any]:
         max_intensity = 0.0
         mean_intensity = 0.0
         top_3_intense = []
-    
-    # Aggregate intensity by anatomical region
-    intensity_by_region = aggregate_by_anatomical_region(intensity_index, aggregation_func="max")
     
     return {
         "path_length": {
@@ -1792,11 +1906,11 @@ def build_quality_row(run_id: str, steps: Dict[str, dict]) -> Dict[str, Any]:
         "Height_Status": safe_get_path(s05, "subject_context.height_status"),
         "Subject_Mass_kg": round(safe_float(safe_get_path(s04, "subject_metadata.mass_kg")), 2),
         
-        # Kinematics
+        # Kinematics - Extract from per_joint data if metrics not available
         "Pipeline_Status": safe_get_path(s06, "overall_status"),
-        "Max_Ang_Vel_deg_s": round(safe_float(safe_get_path(s06, "metrics.angular_velocity.max")), 2),
-        "Max_Ang_Accel": round(safe_float(safe_get_path(s06, "metrics.angular_accel.max")), 2),
-        "Max_Lin_Accel": round(safe_float(safe_get_path(s06, "metrics.linear_accel.max")), 2),
+        "Max_Ang_Vel_deg_s": round(_extract_max_from_per_joint(s06, "max_omega_deg_s"), 2),
+        "Max_Ang_Accel": round(_extract_max_from_per_joint(s06, "max_alpha_deg_s2"), 2),
+        "Max_Lin_Accel": round(_extract_max_from_per_segment_linear(s06, "max_lin_acc_mm_s2"), 2),
         "Outlier_Frames": safe_int(safe_get_path(s06, "outlier_analysis.counts.total_outliers")),
         "Outlier_%": round(safe_float(safe_get_path(s06, "outlier_analysis.percentages.total_outliers")), 3),
         "Residual_RMS": round(safe_float(safe_get_path(s06, "signal_quality.avg_residual_rms")), 3),
