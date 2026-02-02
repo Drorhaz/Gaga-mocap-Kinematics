@@ -2346,3 +2346,106 @@ def print_section_header(title: str, width: int = 80):
     print("=" * width)
     print(title)
     print("=" * width)
+
+
+# ============================================================
+# VISUALIZATION DATA LOADING (for Notebook 09)
+# ============================================================
+
+def load_kinematics_timeseries(run_id: str, deriv_root: str = None) -> pd.DataFrame:
+    """
+    Load the pre-calculated kinematics master time-series for a given run.
+    
+    This function loads the final output from Step 06 (Ultimate Kinematics), which contains:
+    - Pre-calculated Euler angles (ISB Standard): {segment}__euler_x/y/z
+    - Angular velocities: {segment}__omega_mag, {segment}__omega_x/y/z
+    - Artifact flags: {segment}__is_artifact, {segment}__is_hampel_outlier
+    - Position data: {segment}__px/py/pz (root-relative positions in mm)
+    
+    Args:
+        run_id: Unique recording identifier (e.g., "734_T3_P2_R1_Take 2025-12-30 04.12.54 PM_002")
+        deriv_root: Path to derivatives folder (defaults to PROJECT_ROOT/derivatives)
+    
+    Returns:
+        pandas.DataFrame: Time-series data with all pre-calculated kinematics
+        
+    Raises:
+        FileNotFoundError: If the kinematics_master.parquet file doesn't exist
+        
+    Example:
+        >>> df = load_kinematics_timeseries("734_T3_P2_R1_Take 2025-12-30 04.12.54 PM_002")
+        >>> print(df.columns[:5])  # First 5 columns
+        >>> print(f"Shape: {df.shape[0]} frames at 120Hz")
+    """
+    # Set default deriv_root if not provided
+    if deriv_root is None:
+        # Try to infer from current working directory
+        cwd = os.getcwd()
+        if os.path.basename(cwd) == 'notebooks':
+            deriv_root = os.path.join(os.path.dirname(cwd), 'derivatives')
+        else:
+            deriv_root = os.path.join(cwd, 'derivatives')
+    
+    # Construct path to kinematics_master.parquet
+    step_06_dir = os.path.join(deriv_root, 'step_06_kinematics')
+    parquet_path = os.path.join(step_06_dir, f"{run_id}__kinematics_master.parquet")
+    
+    # Check if file exists
+    if not os.path.exists(parquet_path):
+        raise FileNotFoundError(
+            f"Kinematics master file not found: {parquet_path}\n"
+            f"Please ensure Step 06 (Ultimate Kinematics) has been executed for run_id: {run_id}"
+        )
+    
+    # Load parquet file
+    df = pd.read_parquet(parquet_path)
+    
+    return df
+
+
+def get_session_metadata(run_id: str, deriv_root: str = None) -> Dict[str, Any]:
+    """
+    Load all JSON metadata for a given session.
+    
+    Aggregates metadata from all pipeline steps for easy access during visualization.
+    
+    Args:
+        run_id: Unique recording identifier
+        deriv_root: Path to derivatives folder (defaults to PROJECT_ROOT/derivatives)
+    
+    Returns:
+        Dict with keys: 'filtering_summary', 'outlier_validation', 'preprocess_summary', etc.
+        
+    Example:
+        >>> metadata = get_session_metadata("734_T3_P2_R1_Take 2025-12-30 04.12.54 PM_002")
+        >>> noisiest = metadata['outlier_validation'].get('noisiest_segment', 'Unknown')
+        >>> worst_bone = metadata['preprocess_summary'].get('worst_bone', 'Unknown')
+    """
+    # Set default deriv_root if not provided
+    if deriv_root is None:
+        cwd = os.getcwd()
+        if os.path.basename(cwd) == 'notebooks':
+            deriv_root = os.path.join(os.path.dirname(cwd), 'derivatives')
+        else:
+            deriv_root = os.path.join(cwd, 'derivatives')
+    
+    metadata = {}
+    
+    # Key files to load for visualization
+    metadata_files = {
+        'filtering_summary': os.path.join(deriv_root, 'step_04_filtering', f"{run_id}__filtering_summary.json"),
+        'outlier_validation': os.path.join(deriv_root, 'step_06_kinematics', f"{run_id}__outlier_validation.json"),
+        'preprocess_summary': os.path.join(deriv_root, 'step_02_preprocess', f"{run_id}__preprocess_summary.json"),
+        'validation_report': os.path.join(deriv_root, 'step_06_kinematics', f"{run_id}__validation_report.json"),
+        'reference_summary': os.path.join(deriv_root, 'step_05_reference', f"{run_id}__reference_summary.json"),
+    }
+    
+    # Load each file if it exists
+    for key, filepath in metadata_files.items():
+        if os.path.exists(filepath):
+            metadata[key] = load_json_safe(filepath)
+        else:
+            metadata[key] = None
+            print(f"Warning: {key} not found at {filepath}")
+    
+    return metadata
