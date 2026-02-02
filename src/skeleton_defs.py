@@ -3,6 +3,34 @@
 
 # Format: 'JointName': {'parent': 'ParentName', 'angle_name': 'OutputName'}
 
+def is_finger_or_toe_segment(joint_name):
+    """
+    Determines if a joint name represents a finger or toe segment.
+    
+    Hand Fingers: All segments containing Hand(Thumb|Index|Middle|Ring|Pinky)
+    Foot Toes: LeftToeBase, RightToeBase
+    
+    Parameters:
+    -----------
+    joint_name : str
+        The joint name to check
+        
+    Returns:
+    --------
+    bool
+        True if the joint is a finger or toe segment, False otherwise
+    """
+    # Check for hand fingers (Thumb, Index, Middle, Ring, Pinky)
+    finger_patterns = ['HandThumb', 'HandIndex', 'HandMiddle', 'HandRing', 'HandPinky']
+    if any(pattern in joint_name for pattern in finger_patterns):
+        return True
+    
+    # Check for toe segments
+    if joint_name in ['LeftToeBase', 'RightToeBase']:
+        return True
+    
+    return False
+
 SKELETON_HIERARCHY = {
     # --- Root (Global) ---
     "Hips": {
@@ -40,12 +68,37 @@ SKELETON_HIERARCHY = {
     "RightForeArm":  {"parent": "RightArm",      "angle_name": "RightElbow_Angle"},
     "RightHand":     {"parent": "RightForeArm",  "angle_name": "RightWrist_Angle"},
     
-    # --- Fingers (Left) - הוסף את כל האצבעות אם אתה דורש בדיקה קשיחה ---
+    # --- Fingers (Left) ---
     "LeftHandThumb1": {"parent": "LeftHand", "angle_name": "L_Thumb1"},
     "LeftHandThumb2": {"parent": "LeftHandThumb1", "angle_name": "L_Thumb2"},
     "LeftHandThumb3": {"parent": "LeftHandThumb2", "angle_name": "L_Thumb3"},
     "LeftHandIndex1": {"parent": "LeftHand", "angle_name": "L_Index1"},
     "LeftHandIndex2": {"parent": "LeftHandIndex1", "angle_name": "L_Index2"},
     "LeftHandIndex3": {"parent": "LeftHandIndex2", "angle_name": "L_Index3"},
-    # ... להוסיף את שאר האצבעות לפי ה-Schema שלך ...
+    "LeftHandMiddle1": {"parent": "LeftHand", "angle_name": "L_Middle1"},
+    "LeftHandMiddle2": {"parent": "LeftHandMiddle1", "angle_name": "L_Middle2"},
+    "LeftHandMiddle3": {"parent": "LeftHandMiddle2", "angle_name": "L_Middle3"},
+    "LeftHandRing1": {"parent": "LeftHand", "angle_name": "L_Ring1"},
+    "LeftHandRing2": {"parent": "LeftHandRing1", "angle_name": "L_Ring2"},
+    "LeftHandRing3": {"parent": "LeftHandRing2", "angle_name": "L_Ring3"},
+    "LeftHandPinky1": {"parent": "LeftHand", "angle_name": "L_Pinky1"},
+    "LeftHandPinky2": {"parent": "LeftHandPinky1", "angle_name": "L_Pinky2"},
+    "LeftHandPinky3": {"parent": "LeftHandPinky2", "angle_name": "L_Pinky3"},
+    
+    # --- Fingers (Right) ---
+    "RightHandThumb1": {"parent": "RightHand", "angle_name": "R_Thumb1"},
+    "RightHandThumb2": {"parent": "RightHandThumb1", "angle_name": "R_Thumb2"},
+    "RightHandThumb3": {"parent": "RightHandThumb2", "angle_name": "R_Thumb3"},
+    "RightHandIndex1": {"parent": "RightHand", "angle_name": "R_Index1"},
+    "RightHandIndex2": {"parent": "RightHandIndex1", "angle_name": "R_Index2"},
+    "RightHandIndex3": {"parent": "RightHandIndex2", "angle_name": "R_Index3"},
+    "RightHandMiddle1": {"parent": "RightHand", "angle_name": "R_Middle1"},
+    "RightHandMiddle2": {"parent": "RightHandMiddle1", "angle_name": "R_Middle2"},
+    "RightHandMiddle3": {"parent": "RightHandMiddle2", "angle_name": "R_Middle3"},
+    "RightHandRing1": {"parent": "RightHand", "angle_name": "R_Ring1"},
+    "RightHandRing2": {"parent": "RightHandRing1", "angle_name": "R_Ring2"},
+    "RightHandRing3": {"parent": "RightHandRing2", "angle_name": "R_Ring3"},
+    "RightHandPinky1": {"parent": "RightHand", "angle_name": "R_Pinky1"},
+    "RightHandPinky2": {"parent": "RightHandPinky1", "angle_name": "R_Pinky2"},
+    "RightHandPinky3": {"parent": "RightHandPinky2", "angle_name": "R_Pinky3"},
 }

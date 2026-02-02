@@ -21,6 +21,7 @@ import pandas as pd
 import logging
 from typing import Tuple, Dict, Optional, List
 from scipy.spatial.transform import Rotation as R
+from scipy.signal import savgol_filter
 
 logger = logging.getLogger(__name__)
 
@@ -284,6 +285,79 @@ def _recommend_method(noise_qlog: float, noise_5pt: float, noise_central: float)
         return 'quaternion_log (theoretically preferred, similar noise)'
     else:
         return 'quaternion_log (default recommendation)'
+
+
+def _normalize_omega_method(method: str) -> str:
+    """
+    Map config-style method names to API names used by compute_angular_velocity_enhanced.
+    Config: quat_log | 5pt | central  ->  API: quaternion_log | 5point | central
+    """
+    m = (method or "").strip().lower()
+    if m in ("quat_log", "quaternion_log"):
+        return "quaternion_log"
+    if m in ("5pt", "5point"):
+        return "5point"
+    if m == "central":
+        return "central"
+    return "quaternion_log"
+
+
+def compute_angular_acceleration(omega_rad: np.ndarray,
+                                 fs: float,
+                                 window_len: int,
+                                 polyorder: int,
+                                 mode: str = "interp") -> np.ndarray:
+    """
+    Compute angular acceleration (d(omega)/dt) from angular velocity using Savitzky-Golay.
+
+    omega_rad: (T, 3) in rad/s
+    fs: sampling frequency Hz
+    window_len, polyorder: SavGol parameters (same as used for quat smoothing)
+    mode: passed to savgol_filter (e.g. 'interp' for boundaries)
+
+    Returns:
+        alpha_rad: (T, 3) in rad/s²
+    """
+    dt = 1.0 / fs
+    alpha_rad = np.column_stack([
+        savgol_filter(omega_rad[:, j], window_len, polyorder, deriv=1, delta=dt, mode=mode)
+        for j in range(3)
+    ])
+    return alpha_rad
+
+
+def compute_omega_and_alpha(q: np.ndarray,
+                            fs: float,
+                            method: str = "quat_log",
+                            frame: str = "local",
+                            savgol_window: Optional[int] = None,
+                            savgol_poly: int = 3) -> Tuple[np.ndarray, np.ndarray]:
+    """
+    Single entry point for angular velocity and acceleration from quaternions.
+
+    Method is applied only to omega (q -> omega); alpha is always d(omega)/dt via SavGol.
+    Config-style method names are accepted: quat_log | 5pt | central.
+
+    Args:
+        q: (T, 4) quaternions xyzw
+        fs: sampling frequency Hz
+        method: 'quat_log' | '5pt' | 'central' (or API names quaternion_log | 5point | central)
+        frame: 'local' or 'global'
+        savgol_window: SavGol window length for alpha (derivative of omega). If None, a default is used.
+        savgol_poly: SavGol polynomial order for alpha
+
+    Returns:
+        omega_rad: (T, 3) rad/s
+        alpha_rad: (T, 3) rad/s²
+    """
+    method_api = _normalize_omega_method(method)
+    omega_rad, _ = compute_angular_velocity_enhanced(q, fs, method=method_api, frame=frame)
+    if savgol_window is None:
+        savgol_window = max(5, int(round(0.175 * fs)) | 1, savgol_poly + 2)
+    if savgol_window % 2 == 0:
+        savgol_window += 1
+    alpha_rad = compute_angular_acceleration(omega_rad, fs, savgol_window, savgol_poly)
+    return omega_rad, alpha_rad
 
 
 def compute_angular_velocity_enhanced(q: np.ndarray,

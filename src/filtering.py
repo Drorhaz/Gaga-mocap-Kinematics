@@ -292,13 +292,14 @@ def winter_residual_analysis(signal: np.ndarray,
             higher_knee_candidate = strict_knee_candidate or relaxed_knee_candidate
             
             # OPTION B: Weighted compromise when diminishing_returns is below minimum
-            # and a higher knee-point exists
-            if (diminishing_candidate and higher_knee_candidate and 
+            # and a higher knee-point exists. Weights (0.3, 0.7) are fixed; could be
+            # made configurable or data-driven (e.g. from residual slope) for tuning.
+            if (diminishing_candidate and higher_knee_candidate and
                 diminishing_candidate[0] < min_cutoff_region and
                 higher_knee_candidate[0] > diminishing_candidate[0]):
-                
+
                 # Weighted average: 30% diminishing_returns + 70% strict_knee
-                # This preserves more high-frequency content for Gaga dance
+                # Preserves more high-frequency content for Gaga dance
                 weighted_cutoff = (diminishing_candidate[0] * 0.3) + (higher_knee_candidate[0] * 0.7)
                 optimal_fc = round(weighted_cutoff, 1)
                 method_used = f"weighted_compromise({diminishing_candidate[0]:.1f}*0.3+{higher_knee_candidate[0]:.1f}*0.7)"
@@ -429,65 +430,79 @@ def winter_residual_analysis(signal: np.ndarray,
 def detect_artifact_gaps(signal: np.ndarray, 
                         fs: float,
                         velocity_limit: float = 1800.0,
-                        zscore_threshold: float = 5.0) -> np.ndarray:
+                        zscore_threshold: float = 5.0) -> Tuple[np.ndarray, Dict]:
     """
     Stage 1: Artifact Detector using Z-Score + Velocity thresholds.
-    
+
+    Used by: 3-stage method (Stage 1). Detects position spikes via frame-to-frame
+    velocity (diff(position)/dt) and flags frames for interpolation.
+
     Detects tracking artifacts (spikes) by identifying frames where:
-    1. Velocity change exceeds physiological limit
-    2. Velocity change is >N standard deviations from session mean
-    
-    This identifies "tracking artifacts" without blurring legitimate movement.
-    
+    1. Velocity exceeds physiological limit (e.g. 5000 mm/s for position)
+    2. Velocity is > zscore_threshold standard deviations from session mean
+
+    Rationale: Configurable velocity_limit and zscore_threshold (config_v1.yaml)
+    allow tuning; 5000 mm/s ≈ 5 m/s (very fast for body markers); 5σ flags
+    extreme outliers while sparing normal dynamics. Validate with printed
+    breakdown (velocity vs zscore) and frame counts.
+
     Args:
         signal: 1D position signal
         fs: Sampling frequency (Hz)
         velocity_limit: Physiological velocity limit in signal units per second
                        (e.g., 5000 mm/s for position, 1800 deg/s for angles)
         zscore_threshold: Z-score threshold for outlier detection (default: 5.0)
-        
+
     Returns:
-        Boolean mask where True indicates artifact gaps (should be interpolated)
+        artifact_mask: Boolean mask where True = frame marked for interpolation
+        stats: Dict with n_velocity_spikes, n_zscore_spikes, n_frames_marked
     """
     if len(signal) < 3:
-        return np.zeros(len(signal), dtype=bool)
-    
+        return np.zeros(len(signal), dtype=bool), {
+            "n_velocity_spikes": 0, "n_zscore_spikes": 0, "n_frames_marked": 0
+        }
+
     # Compute velocity (change per frame, then convert to per-second)
     dt = 1.0 / fs
     velocity = np.diff(signal) / dt  # Units: signal_units/s
-    
+
     # Compute session statistics
     velocity_mean = np.nanmean(velocity)
     velocity_std = np.nanstd(velocity)
-    
+
     # Avoid division by zero
     if velocity_std < 1e-10:
         velocity_std = 1e-10
-    
+
     # Compute z-scores
     z_scores = np.abs((velocity - velocity_mean) / velocity_std)
-    
-    # Detect artifacts: either exceeds physiological limit OR >N std devs
-    artifact_mask = np.zeros(len(signal), dtype=bool)
-    
-    # Check velocity threshold (convert signal units to deg/s equivalent if needed)
-    # For position data, we use absolute velocity magnitude
+
+    # For position data, use absolute velocity magnitude
     abs_velocity = np.abs(velocity)
-    
+
     # Mark frames where velocity spike detected
     velocity_spikes = abs_velocity > velocity_limit
     zscore_spikes = z_scores > zscore_threshold
-    
+
     # Combine: artifact if EITHER condition is met
     spike_mask = velocity_spikes | zscore_spikes
-    
-    # Mark the frame AFTER the spike (where the gap occurs)
+
+    # Mark the frame AFTER the spike (where the gap occurs) and the frame WITH the spike
+    artifact_mask = np.zeros(len(signal), dtype=bool)
     artifact_mask[1:][spike_mask] = True
-    
-    # Also mark the frame WITH the spike
     artifact_mask[:-1][spike_mask] = True
-    
-    return artifact_mask
+
+    n_vel = int(np.sum(velocity_spikes))
+    n_z = int(np.sum(zscore_spikes))
+    # Frames marked can double-count where both conditions hit same transition
+    n_marked = int(np.sum(artifact_mask))
+
+    stats = {
+        "n_velocity_spikes": n_vel,
+        "n_zscore_spikes": n_z,
+        "n_frames_marked": n_marked,
+    }
+    return artifact_mask, stats
 
 
 def apply_hampel_filter(signal: np.ndarray, 
@@ -737,18 +752,29 @@ def apply_signal_cleaning_pipeline(df: pd.DataFrame,
                                   hampel_n_sigma: float = 3.0,
                                   winter_fmin: float = 1.0,
                                   winter_fmax: float = 20.0,
-                                  per_joint_winter: bool = True) -> Tuple[pd.DataFrame, Dict]:
+                                  per_joint_winter: bool = True,
+                                  stage1_interpolation_method: str = 'pchip') -> Tuple[pd.DataFrame, Dict]:
     """
     Apply 3-Stage Signal Cleaning Pipeline: Artifact Detection → Hampel → Adaptive Winter.
-    
+
+    Used by: 3-stage method (config_v1.yaml filtering.method = "3_stage").
+    Does: Stage 1 artifact detection (velocity + z-score) → Stage 2 Hampel → Stage 3
+    adaptive Winter per column; returns cleaned dataframe and pipeline metadata.
+
+    Why cleaning before low-pass: Savitzky-Golay (used in notebook 06 for derivatives)
+    smooths when differentiating; it does not remove spikes. A spike in position would
+    remain and be smoothed into a bump, affecting derivatives. Stage 1+2 remove or
+    correct spikes and outliers first; Winter (Stage 3) then low-pass filters the
+    cleaned signal. So all three stages are needed when data has artifacts.
+
     This generic "Gatekeeper" architecture treats artifacts (spikes) and noise (jitter)
     as two separate problems, and can be applied to any joint in any session.
-    
+
     Pipeline:
     1. Stage 1 (Artifact Detector): Identifies tracking spikes using velocity + z-score
     2. Stage 2 (Hampel Filter): Removes outliers using sliding window median
     3. Stage 3 (Adaptive Winter): Finds optimal cutoff per-joint using residual analysis
-    
+
     Args:
         df: Input DataFrame with position columns
         fs: Sampling frequency (Hz)
@@ -760,9 +786,13 @@ def apply_signal_cleaning_pipeline(df: pd.DataFrame,
         hampel_n_sigma: Hampel filter outlier threshold (default: 3.0)
         winter_fmin: Minimum cutoff for Winter analysis (Hz)
         winter_fmax: Maximum cutoff for Winter analysis (Hz)
-        per_joint_winter: If True, run Winter analysis per-joint (adaptive). 
-                         If False, use single global cutoff.
-        
+        per_joint_winter: Stored in pipeline metadata only. The implementation
+                         always runs Winter analysis per column (adaptive cutoff per
+                         joint); there is no single-global-Winter path when False.
+        stage1_interpolation_method: Method for filling artifact gaps: 'pchip' (default),
+                         'linear', or 'cubic'. PCHIP is shape-preserving (no overshoot),
+                         smooth; linear is most conservative; cubic can overshoot.
+
     Returns:
         Tuple of (cleaned_dataframe, pipeline_metadata)
     """
@@ -773,7 +803,8 @@ def apply_signal_cleaning_pipeline(df: pd.DataFrame,
             'stage1_artifact_detector': {
                 'method': 'Z-Score + Velocity Threshold',
                 'velocity_limit': velocity_limit,
-                'zscore_threshold': zscore_threshold
+                'zscore_threshold': zscore_threshold,
+                'interpolation_method': stage1_interpolation_method
             },
             'stage2_hampel': {
                 'method': 'Sliding Window Median',
@@ -798,39 +829,59 @@ def apply_signal_cleaning_pipeline(df: pd.DataFrame,
     
     logger.info(f"Applying 3-stage signal cleaning pipeline to {len(pos_cols_valid)} position columns")
     
+    # Helper: count contiguous True segments in a boolean mask
+    def _count_segments(mask: np.ndarray) -> int:
+        if not np.any(mask):
+            return 0
+        padded = np.concatenate([[False], mask, [False]])
+        runs = np.diff(padded.astype(int))
+        return int(np.sum(runs == 1))
+
     # Process each position column
     total_artifacts = 0
+    total_artifact_segments = 0
+    total_velocity_spikes = 0
+    total_zscore_spikes = 0
     total_hampel_outliers = 0
-    
+    n_frames_total = len(df) if len(pos_cols_valid) > 0 else 0
+
     for col in pos_cols_valid:
         signal = df[col].values.astype(float)
-        
+
         # Skip if all NaN
         if np.all(np.isnan(signal)):
             continue
-        
+
         col_metadata = {}
-        
+
         # Stage 1: Artifact Detection
-        artifact_mask = detect_artifact_gaps(
-            signal, fs, 
+        artifact_mask, artifact_stats = detect_artifact_gaps(
+            signal, fs,
             velocity_limit=velocity_limit,
             zscore_threshold=zscore_threshold
         )
-        n_artifacts = np.sum(artifact_mask)
+        n_artifacts = artifact_stats["n_frames_marked"]
+        n_segments = _count_segments(artifact_mask)
         total_artifacts += n_artifacts
-        
-        # Interpolate artifacts (simple linear interpolation)
+        total_artifact_segments += n_segments
+        total_velocity_spikes += artifact_stats["n_velocity_spikes"]
+        total_zscore_spikes += artifact_stats["n_zscore_spikes"]
+
+        # Interpolate artifacts (method: linear or cubic; document in summary)
         signal_stage1 = signal.copy()
         if n_artifacts > 0:
-            # Use pandas interpolation for simplicity
             signal_series = pd.Series(signal_stage1)
             signal_series.loc[artifact_mask] = np.nan
-            signal_stage1 = signal_series.interpolate(method='linear', limit_direction='both').values
-            # Fill any remaining NaNs at edges
+            signal_stage1 = signal_series.interpolate(
+                method=stage1_interpolation_method,
+                limit_direction='both'
+            ).values
             signal_stage1 = pd.Series(signal_stage1).bfill().ffill().values
-        
+
         col_metadata['stage1_artifacts_detected'] = int(n_artifacts)
+        col_metadata['stage1_segments_interpolated'] = n_segments
+        col_metadata['stage1_velocity_spikes'] = artifact_stats["n_velocity_spikes"]
+        col_metadata['stage1_zscore_spikes'] = artifact_stats["n_zscore_spikes"]
         
         # Stage 2: Hampel Filter
         signal_stage2, hampel_outliers = apply_hampel_filter(
@@ -864,13 +915,20 @@ def apply_signal_cleaning_pipeline(df: pd.DataFrame,
         df_out[col] = signal_stage3
         pipeline_metadata['per_joint_results'][col] = col_metadata
     
-    # Summary statistics
+    # Summary statistics (frames = samples; segments = contiguous interpolated runs)
     pipeline_metadata['summary'] = {
         'total_columns_processed': len(pos_cols_valid),
-        'total_artifacts_detected': int(total_artifacts),
+        'n_frames_total': n_frames_total,
+        'total_artifact_frames': int(total_artifacts),
+        'total_artifact_segments': int(total_artifact_segments),
+        'total_velocity_spikes': int(total_velocity_spikes),
+        'total_zscore_spikes': int(total_zscore_spikes),
         'total_hampel_outliers': int(total_hampel_outliers),
+        'stage1_interpolation_method': stage1_interpolation_method,
         'avg_artifacts_per_column': total_artifacts / len(pos_cols_valid) if pos_cols_valid else 0,
-        'avg_hampel_outliers_per_column': total_hampel_outliers / len(pos_cols_valid) if pos_cols_valid else 0
+        'avg_hampel_outliers_per_column': total_hampel_outliers / len(pos_cols_valid) if pos_cols_valid else 0,
+        'artifact_frames_pct': (100.0 * total_artifacts / (len(pos_cols_valid) * n_frames_total)) if pos_cols_valid and n_frames_total else 0.0,
+        'hampel_frames_pct': (100.0 * total_hampel_outliers / (len(pos_cols_valid) * n_frames_total)) if pos_cols_valid and n_frames_total else 0.0,
     }
     
     # Compute cutoff statistics
@@ -885,8 +943,11 @@ def apply_signal_cleaning_pipeline(df: pd.DataFrame,
             'std': float(np.std(cutoffs))
         }
     
-    logger.info(f"3-stage pipeline complete: {total_artifacts} artifacts, {total_hampel_outliers} Hampel outliers")
-    
+    logger.info(
+        f"3-stage pipeline complete: Stage1 interpolated {total_artifacts} frames in {total_artifact_segments} segments "
+        f"(velocity_spikes={total_velocity_spikes}, zscore_spikes={total_zscore_spikes}), method={stage1_interpolation_method}; "
+        f"Stage2 Hampel replaced {total_hampel_outliers} frames ({pipeline_metadata['summary'].get('hampel_frames_pct', 0):.2f}% of samples)"
+    )
     return df_out, pipeline_metadata
 
 
@@ -912,10 +973,25 @@ def print_pipeline_debug_logs(pipeline_metadata: Dict,
     stage1 = stages.get('stage1_artifact_detector', {})
     print(f"     - Velocity limit: {stage1.get('velocity_limit', 'N/A')} mm/s")
     print(f"     - Z-score threshold: {stage1.get('zscore_threshold', 'N/A')}σ")
+    print(f"     - Interpolation method: {stage1.get('interpolation_method', 'linear')} (documented)")
     print(f"   Stage 2 (Hampel Filter):")
     stage2 = stages.get('stage2_hampel', {})
     print(f"     - Window size: {stage2.get('window_size', 'N/A')} frames")
     print(f"     - Outlier threshold: {stage2.get('n_sigma', 'N/A')}σ")
+
+    # Stage 1 & 2 impact: frames and segments (all numbers are frame counts)
+    summary = pipeline_metadata.get('summary', {})
+    n_frames = summary.get('n_frames_total', 0)
+    n_cols = summary.get('total_columns_processed', 1)
+    total_pos_samples = n_frames * n_cols if n_frames and n_cols else 1
+    print(f"\n📈 STAGE 1 & 2 IMPACT (all numbers in frames = samples):")
+    print(f"   Stage 1 (interpolation):")
+    print(f"     - Frames interpolated: {summary.get('total_artifact_frames', 0)} ({summary.get('artifact_frames_pct', 0):.2f}% of position samples)")
+    print(f"     - Contiguous segments interpolated: {summary.get('total_artifact_segments', 0)}")
+    print(f"     - Triggered by velocity limit: {summary.get('total_velocity_spikes', 0)} frame transitions")
+    print(f"     - Triggered by z-score: {summary.get('total_zscore_spikes', 0)} frame transitions")
+    print(f"   Stage 2 (Hampel):")
+    print(f"     - Frames replaced (outliers): {summary.get('total_hampel_outliers', 0)} ({summary.get('hampel_frames_pct', 0):.2f}% of position samples)")
     print(f"   Stage 3 (Adaptive Winter):")
     stage3 = stages.get('stage3_adaptive_winter', {})
     print(f"     - Frequency range: {stage3.get('fmin', 'N/A')} - {stage3.get('fmax', 'N/A')} Hz")
@@ -925,7 +1001,7 @@ def print_pipeline_debug_logs(pipeline_metadata: Dict,
     summary = pipeline_metadata.get('summary', {})
     print(f"\n📈 SUMMARY STATISTICS:")
     print(f"   Total columns processed: {summary.get('total_columns_processed', 0)}")
-    print(f"   Total artifacts detected: {summary.get('total_artifacts_detected', 0)}")
+    print(f"   Total artifacts detected: {summary.get('total_artifact_frames', 0)}")
     print(f"   Total Hampel outliers: {summary.get('total_hampel_outliers', 0)}")
     print(f"   Avg artifacts per column: {summary.get('avg_artifacts_per_column', 0):.2f}")
     print(f"   Avg Hampel outliers per column: {summary.get('avg_hampel_outliers_per_column', 0):.2f}")
@@ -1076,7 +1152,8 @@ def apply_winter_filter(df: pd.DataFrame,
                      min_cutoff_trunk: Optional[float] = 6.0,
                      min_cutoff_distal: Optional[float] = 8.0,
                      use_trunk_global: bool = False,
-                     per_region_filtering: bool = False) -> Tuple[pd.DataFrame, Dict]:
+                     per_region_filtering: bool = False,
+                     fixed_cutoff_hz: Optional[float] = None) -> Tuple[pd.DataFrame, Dict]:
     """
     Apply Winter low-pass filter to position columns only.
     
@@ -1094,6 +1171,7 @@ def apply_winter_filter(df: pd.DataFrame,
         min_cutoff_distal: Biomechanical minimum cutoff for distal markers (Hz)
         use_trunk_global: If True, run Winter on trunk markers only and apply to all columns
         per_region_filtering: If True, apply different cutoffs per body region (recommended for dance)
+        fixed_cutoff_hz: If set (e.g. 8.0), skip Winter analysis and apply this cutoff to all columns (single-global).
         
     Returns:
         Tuple of (filtered DataFrame, metadata dict)
@@ -1131,8 +1209,13 @@ def apply_winter_filter(df: pd.DataFrame,
     if not pos_cols_valid:
         raise ValueError(f"No valid position columns found. All {len(pos_cols)} columns excluded: {excluded_cols}")
     
+    # Single-global fixed cutoff from config (skip Winter analysis)
+    if fixed_cutoff_hz is not None:
+        fc = float(fixed_cutoff_hz)
+        chosen_rep_col = "config_fixed"
+        logger.info(f"Using config fixed cutoff: {fc:.1f} Hz (single-global)")
     # Smart representative column selection with multi-signal fallback
-    if rep_col is not None:
+    elif rep_col is not None:
         if rep_col not in df.columns:
             raise ValueError(f"Representative column '{rep_col}' not found in DataFrame")
         if df[rep_col].isna().any():
