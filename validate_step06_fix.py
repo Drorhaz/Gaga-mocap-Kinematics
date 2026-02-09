@@ -159,7 +159,7 @@ def scan_derivatives(derivatives_path: Path) -> List[Path]:
     if not step06_dir.exists():
         return []
     
-    summary_files = list(step06_dir.glob("*__kinematics_summary.json"))
+    summary_files = list(step06_dir.glob("*__validation_report.json"))
     return sorted(summary_files)
 
 

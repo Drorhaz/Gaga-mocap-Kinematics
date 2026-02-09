@@ -31,7 +31,7 @@ class PipelineRunner:
         self.dry_run = dry_run
         
         # Pipeline sequence (notebook numbers)
-        self.pipeline_sequence = ['01', '02', '03', '04', '05', '06']
+        self.pipeline_sequence = ['01', '02', '03', '04', '05', '06','08']
         
         # Setup logging
         self.setup_logging()
@@ -237,8 +237,8 @@ class PipelineRunner:
             f"step_02_preprocess/{run_id}__preprocessed.parquet",
             f"step_03_resample/{run_id}__resampled.parquet",
             f"step_04_filtering/{run_id}__filtered.parquet",
-            f"step_06_kinematics/{run_id}__kinematics.parquet",
-            f"step_06_kinematics/{run_id}__kinematics_summary.json",
+            f"step_06_kinematics/{run_id}__kinematics_master.parquet",
+            f"step_06_kinematics/{run_id}__validation_report.json",
         ]
         
         all_exist = True
