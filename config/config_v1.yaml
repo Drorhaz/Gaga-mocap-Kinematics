@@ -1,124 +1,98 @@
-# =============================================================================
-# Pipeline config (single source of truth). Loaded by src/pipeline_config.py
-# =============================================================================
-
-# --- Paths & run ---
-current_csv: 734\T3\734_T3_P2_R1_Take 2025-12-30 04.12.54 PM_002.csv
+crop_sec:
+- 10.0
+- 110.0
+current_csv: 671/T3/671_T3_P1_R1_Take 2026-02-03 08.05.01 PM_000.csv
 data_dir: data
+deriv_method: savgol
 derivatives_dir: derivatives
-qc_dir: qc
-project_root: .
-
-# --- Sampling & timing ---
-fs_target: 120.0
-min_run_seconds: 5.0
-
-# --- Preprocessing: joints & cropping ---
-# Exclude finger and toe segments from processing
-# When true, excludes all hand fingers (Thumb, Index, Middle, Ring, Pinky) and foot toes (ToeBase)
-# See FINGER_TOE_SEGMENTS_MAPPING.md for complete list of excluded segments
 exclude_fingers: true
-exclude_groups: ["Fingers", "Toes"]
-joints_viz: ["Hips", "Spine", "Spine1", "Neck", "Head", "LeftArm", "RightArm", "LeftUpLeg", "RightUpLeg"]
-required_joints: ["Hips", "Spine", "Head"]
-crop_sec: [10.0, 110.0]
-
-# --- Resampling (step 03) ---
-time_reg_policy: resample_to_fs_target
+exclude_groups:
+- Fingers
+- Toes
+filtering:
+  allow_fmax: true
+  apply_quaternion_median_filter: true
+  cutoff_hz: 8.0
+  fmax: 12.0
+  hampel_n_sigma: 3.0
+  hampel_window: 5
+  method: 3_stage
+  per_joint_winter: true
+  quaternion_window_size: 5
+  stage1_interpolation_method: pchip
+  validation_dance_band_hz:
+  - 1
+  - 13
+  validation_noise_band_hz:
+  - 20
+  - 50
+  velocity_limit: 5000.0
+  winter_fmax: 20.0
+  winter_fmin: 1.0
+  zscore_threshold: 5.0
+fs_target: 120.0
+health_fallback_cap: 59
+health_weights:
+  bone: 25.0
+  missing: 25.0
+  omega: 25.0
+  ref: 25.0
+joints_viz:
+- Hips
+- Spine
+- Spine1
+- Neck
+- Head
+- LeftArm
+- RightArm
+- LeftUpLeg
+- RightUpLeg
+max_gap_pos_sec: 1.0
+max_gap_quat_sec: 0.25
+min_run_seconds: 5.0
+missing_policy_pos: interp_linear_or_spline
+missing_policy_quat: interp_slerp
+motion_thr_low: 0.3
+motion_thr_std: 0.15
+omega_frame: child_body
+omega_method: quat_log
 pos_resample_method: cubic_spline
+project_root: .
+qc_dir: qc
 quat_resample_method: slerp
-
-# --- Reference detection (step 05) ---
 ref_anchor: static_detection_pre_crop
 ref_search_sec: 8.0
 ref_window_sec: 1.0
-static_search_step_sec: 0.1
 reference_variance_threshold: 100.0
-
-# --- Motion / missing data ---
-motion_thr_low: 0.30
-motion_thr_std: 0.15
-missing_policy_pos: interp_linear_or_spline
-missing_policy_quat: interp_slerp
-max_gap_pos_sec: 1.0
-max_gap_quat_sec: 0.25
-
-# --- Rotation & kinematics (step 06) ---
-step_06:
-  enforce_cleaning: false   # true = surgical repair (SLERP/PCHIP) when Critical; false = audit only
-  # Surgical repair: SLERP on quaternions / PCHIP on positions at critical frames only
-  # Critical thresholds: rotation_mag > 180°, omega > 1500 deg/s, alpha > 80000 deg/s², lin_vel > 7000 mm/s, lin_acc > 150000 mm/s²
-shortest_rotation: true
+registry_commit_mode: batch_commit_only
+required_joints:
+- Hips
+- Spine
+- Head
 rotation_rep: rotvec_relative_reference
-omega_method: quat_log          # quat_log | 5pt | central - quaternion logarithm is theoretically superior
-omega_frame: child_body         # child_body (local) | global - body frame recommended for joint analysis
-deriv_method: savgol
-sg_targets: derivatives_only
-sg_window_sec: 0.175            # ~175ms window at 120Hz = 21 frames
 sg_polyorder: 3
-
-# --- Output flags ---
+sg_targets: derivatives_only
+sg_window_sec: 0.175
+shortest_rotation: true
+static_search_step_sec: 0.1
+step_06:
+  enforce_cleaning: false
+thresh:
+  bone_cv_alert: 0.05
+  bone_cv_warn: 0.02
+  bone_max_jump_alert_m: 0.03
+  bone_p95_abs_dev_warn_m: 0.01
+  eps_ref_rv_rad: 0.02
+  fs_tol_frac: 0.01
+  missing_alert_frac: 0.1
+  missing_warn_frac: 0.05
+  omega_p99_alert: 60.0
+  omega_p99_warn: 30.0
+  ref_quality_std_rad_alert: 0.05
+  ref_quality_std_rad_warn: 0.03
+time_reg_policy: resample_to_fs_target
 write_full_csv: true
 write_full_parquet: true
-write_viz_csv: true
-write_run_log_jsonl: false
 write_global_events_jsonl: false
-registry_commit_mode: batch_commit_only
-
-# --- Thresholds (QC / health) ---
-thresh:
-  fs_tol_frac: 0.01
-  missing_warn_frac: 0.05
-  missing_alert_frac: 0.10
-  eps_ref_rv_rad: 0.02
-  ref_quality_std_rad_warn: 0.03
-  ref_quality_std_rad_alert: 0.05
-  omega_p99_warn: 30.0
-  omega_p99_alert: 60.0
-  bone_cv_warn: 0.02
-  bone_cv_alert: 0.05
-  bone_p95_abs_dev_warn_m: 0.01
-  bone_max_jump_alert_m: 0.03
-
-health_fallback_cap: 59
-health_weights:
-  missing: 25.0
-  ref: 25.0
-  omega: 25.0
-  bone: 25.0
-
-# --- Optional per-run (not set = use code default) ---
-# subject_mass_kg: null
-# subject_height_cm: null
-# subject_height_estimated: false
-# height_estimation_method: null
-
-# --- Filtering (notebook 04) ---
-# method: "3_stage" | "per_region" | "single_global"
-filtering:
-  method: "3_stage"   # 3_stage | per_region | single_global
-
-  # --- 3-stage pipeline (method = 3_stage) ---
-  velocity_limit: 5000.0      # mm/s - spike detection on position-derived velocity
-  zscore_threshold: 5.0       # sigma - artifact flag
-  stage1_interpolation_method: "pchip"  # pchip (default) | linear | cubic - fill artifact gaps
-  hampel_window: 5            # frames
-  hampel_n_sigma: 3.0         # sigma for Hampel outlier replacement
-  winter_fmin: 1.0            # Hz - Winter search range
-  winter_fmax: 20.0           # Hz
-  per_joint_winter: true      # adaptive cutoff per joint
-
-  # --- Per-region fixed cutoffs (method = per_region) ---
-  fmax: 12.0                  # Hz - max cutoff for legacy path
-  allow_fmax: true
-
-  # --- Single global cutoff (method = single_global) ---
-  cutoff_hz: 8.0              # Hz - used only when method = single_global
-
-  # --- Quaternion median filter (applied after position filtering) ---
-  apply_quaternion_median_filter: true
-  quaternion_window_size: 5   # frames
-
-  # --- PSD validation (notebook 04 validation section) ---
-  validation_dance_band_hz: [1, 13]   # Hz - "signal" band for preservation metric
-  validation_noise_band_hz: [20, 50]  # Hz - "noise" band for attenuation metric
+write_run_log_jsonl: false
+write_viz_csv: true

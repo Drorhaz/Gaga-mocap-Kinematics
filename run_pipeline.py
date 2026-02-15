@@ -4,6 +4,8 @@ Automated Motion Capture Pipeline Runner
 Processes multiple CSV files through the complete pipeline.
 
 Usage:
+    python run_pipeline.py                    # default: Subject_671_All_Sessions
+    python run_pipeline.py --json batch_configs/subject_671_all.json
     python run_pipeline.py --csv-list csv_files.txt
     python run_pipeline.py --auto-discover
     python run_pipeline.py --single "data/734/T1/file.csv"
@@ -94,19 +96,23 @@ class PipelineRunner:
             self.logger.error(f"Failed to update config: {e}")
             return False
     
-    def run_notebook(self, notebook_num: str, timeout: int = 600) -> Dict:
+    def run_notebook(self, notebook_num: str, timeout: int = 600,
+                     run_id: Optional[str] = None,
+                     current_csv: Optional[str] = None) -> Dict:
         """
         Execute a single notebook using papermill.
         
         Args:
             notebook_num: Notebook number (e.g., '01', '02')
             timeout: Max execution time in seconds
+            run_id: When running in batch, the current run ID (CSV stem) to inject
+            current_csv: When running in batch, the current_csv path for config consistency
             
         Returns:
             Dict with status, error, execution_time
         """
         notebook_name = f"{notebook_num}_*.ipynb"
-        notebooks = list(self.notebooks_dir.glob(notebook_name))
+        notebooks = sorted(self.notebooks_dir.glob(notebook_name))
         
         if not notebooks:
             return {
@@ -114,6 +120,12 @@ class PipelineRunner:
                 'error': f'Notebook {notebook_num} not found',
                 'execution_time': 0
             }
+        
+        # Prefer *_output.ipynb for step 04 so the notebook that writes parquet runs consistently
+        if notebook_num == '04' and len(notebooks) > 1:
+            output_nb = [n for n in notebooks if 'output' in n.stem.lower()]
+            if output_nb:
+                notebooks = output_nb + [n for n in notebooks if n not in output_nb]
         
         notebook_path = notebooks[0]
         output_path = notebook_path.parent / f"{notebook_path.stem}_output.ipynb"
@@ -123,6 +135,13 @@ class PipelineRunner:
         if self.dry_run:
             self.logger.info("   [DRY RUN - Skipped]")
             return {'status': 'skipped', 'error': None, 'execution_time': 0}
+        
+        # Inject run context so notebooks use correct RUN_ID when config is read at import time
+        parameters = {}
+        if run_id is not None:
+            parameters['RUN_ID'] = run_id
+        if current_csv is not None:
+            parameters['current_csv'] = current_csv
         
         start_time = datetime.now()
         
@@ -141,7 +160,8 @@ class PipelineRunner:
                     kernel_name='python3',
                     timeout=timeout,
                     progress_bar=False,
-                    cwd=str(self.project_root)  # Set working directory
+                    cwd=str(self.project_root),  # Set working directory
+                    parameters=parameters if parameters else None
                 )
             finally:
                 # Restore original directory
@@ -195,12 +215,19 @@ class PipelineRunner:
             run_summary['error'] = 'Config update failed'
             return run_summary
         
-        # Step 2: Run pipeline notebooks
+        # Step 2: Run pipeline notebooks (inject run context so each notebook sees correct RUN_ID)
+        data_dir = self.project_root / "data"
+        try:
+            current_csv_rel = str(csv_path.relative_to(data_dir)).replace('\\', '/')
+        except ValueError:
+            current_csv_rel = csv_path.name
+        run_id = csv_path.stem
+        
         total_time = 0
         all_success = True
         
         for notebook_num in self.pipeline_sequence:
-            result = self.run_notebook(notebook_num, timeout=600)
+            result = self.run_notebook(notebook_num, timeout=600, run_id=run_id, current_csv=current_csv_rel)
             run_summary['notebooks'][notebook_num] = result
             total_time += result['execution_time']
             
@@ -369,7 +396,8 @@ def main():
     parser.add_argument(
         '--json',
         type=str,
-        help='JSON file with batch configuration (see batch_configs/ folder)'
+        default='batch_configs/subject_671_all.json',
+        help='JSON file with batch configuration (default: Subject_671_All_Sessions)'
     )
     
     parser.add_argument(
@@ -397,22 +425,21 @@ def main():
     elif args.csv_list:
         with open(args.csv_list, 'r') as f:
             csv_files = [Path(line.strip()) for line in f if line.strip()]
-    elif args.json:
-        # Load from JSON batch configuration
-        with open(args.json, 'r') as f:
+    elif args.auto_discover:
+        csv_files = runner.discover_csv_files()
+    else:
+        # Default: use JSON batch config (e.g. subject_671_all.json)
+        json_path = Path(args.json)
+        if not json_path.is_absolute():
+            json_path = runner.project_root / args.json
+        with open(json_path, 'r') as f:
             batch_config = json.load(f)
         
-        # Convert relative paths to full paths (relative to data/ directory)
         data_dir = runner.project_root / "data"
         csv_files = [data_dir / csv_path for csv_path in batch_config['csv_files']]
         
         print(f"Loaded batch config: {batch_config.get('batch_name', 'Unnamed')}")
         print(f"Description: {batch_config.get('description', 'N/A')}")
-    elif args.auto_discover:
-        csv_files = runner.discover_csv_files()
-    else:
-        parser.print_help()
-        sys.exit(1)
     
     if not csv_files:
         print("ERROR: No CSV files found to process")
